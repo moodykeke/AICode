@@ -1,0 +1,467 @@
+[
+  {
+    "path": "favicon.svg",
+    "bytes": 510,
+    "sha256": "E539F1F65577E2ABBA50DBC51567763C4B3B0A15F3CB909574DBBC255C3BDAAF"
+  },
+  {
+    "path": "index.html",
+    "bytes": 720373,
+    "sha256": "60B3896ECF8535CEBECB4E7DB32E005E228699DA7C938C329A81C7AE2F60BA7E"
+  },
+  {
+    "path": "下一步整体建议.md",
+    "bytes": 4524,
+    "sha256": "D70C65A8A351C080885340AD358CAEBF7693113630F7D58A0B07CC65594D97E5"
+  },
+  {
+    "path": "主题角色设计-v13.md",
+    "bytes": 5542,
+    "sha256": "F9150E4B0C74C7E3C09D228703B15995954274535C65AEF0C4D3C8DC0A20EFF8"
+  },
+  {
+    "path": "作品墙设计-r23.md",
+    "bytes": 3632,
+    "sha256": "546E3BABDF1FB33EDFFEF120724F6CFD2353FD5AAD9DBE44E6D98B7263A2A0A7"
+  },
+  {
+    "path": "使用说明.md",
+    "bytes": 14982,
+    "sha256": "CE49079CC22B215C9ACFC426352554E8DEAA41B7ECB2FF50B7EC816930C7E63F"
+  },
+  {
+    "path": "全班可选与深入检测-r33.md",
+    "bytes": 3040,
+    "sha256": "633F7FBC300071274BAD4C80DDBAFD2AADC082B7CF661E88E160CCA766782CF7"
+  },
+  {
+    "path": "内存优化-r26.md",
+    "bytes": 2649,
+    "sha256": "42EC12F50292D6364FB88D04D0ED8B6F9C73E38549AD72635B9B064E5186D4AC"
+  },
+  {
+    "path": "内存优化-r35.md",
+    "bytes": 3438,
+    "sha256": "8B24C7C91ED71C7AABBBCF457018216B461910AA3BB92970EE6F85DF9892EAED"
+  },
+  {
+    "path": "合影作品化与队形自适应-r39.md",
+    "bytes": 2203,
+    "sha256": "D3F60CC6E9E4561849D5B3C232D78568B764AA40F601F5FB98AC4BAFE4DE87F6"
+  },
+  {
+    "path": "合影送展墙-r42.md",
+    "bytes": 2412,
+    "sha256": "1CC54C1D33066D4CC0D7DCA50149840E7DC134F2B26C04727BE26F7ACD407226"
+  },
+  {
+    "path": "启动本地预览.cmd",
+    "bytes": 310,
+    "sha256": "E6D739321767C2DE78C0D6E94FE299C20578CF985AADDB652C5C1F0FA40987E8"
+  },
+  {
+    "path": "开发与验证/README.md",
+    "bytes": 1798,
+    "sha256": "443D47082F88711F995FDACFC8448F741E1249ABF7AF3DE0AB80CCFB1BD1E127"
+  },
+  {
+    "path": "开发与验证/atlas.js",
+    "bytes": 37116,
+    "sha256": "98EE2C7E168F474637C3D8DFAFE040A91095FE418A7CF85A4BCFB2D81BCC9C53"
+  },
+  {
+    "path": "开发与验证/audio-bank.js",
+    "bytes": 10975,
+    "sha256": "5776EF49C36C2B02751ED55CE522FBF62EF32576F80CE40CD5D5082E7FDE94B1"
+  },
+  {
+    "path": "开发与验证/baseline.html",
+    "bytes": 314115,
+    "sha256": "D8F015FE51C3009708BFAB9CC297E77D8E9438E67616204755C0DAACAADAB23B"
+  },
+  {
+    "path": "开发与验证/bigscreen.js",
+    "bytes": 9099,
+    "sha256": "F3AB5A0BDA670B2FF1C6AFD05E330853BFB36D36067A4D24FD3B853B5A547030"
+  },
+  {
+    "path": "开发与验证/build.cjs",
+    "bytes": 35172,
+    "sha256": "7BD26E7B4E30DDF8E8D3CA2B870F9E60A2848B43C98E550E90362F4BFD048BE6"
+  },
+  {
+    "path": "开发与验证/class-faces.js",
+    "bytes": 46833,
+    "sha256": "4528B40AD2BA14E8981C482DBC8D637684CE01832D4ADDAA4B4E9FAFB347FC08"
+  },
+  {
+    "path": "开发与验证/curation.js",
+    "bytes": 2951,
+    "sha256": "A7408EBAFD625BEEC160299C03EC85A449F2E06DA3463D218FDC5C191979AD07"
+  },
+  {
+    "path": "开发与验证/dock-moves.js",
+    "bytes": 9598,
+    "sha256": "4D00871DC3C3748293E4C534C3A23CA2CCC4472A835ED6B4BBA83836DB56CF59"
+  },
+  {
+    "path": "开发与验证/ensemble.js",
+    "bytes": 21774,
+    "sha256": "0549631F3E99D714188AE738A21967F0336296650F1E443998B7A3AB27CB9415"
+  },
+  {
+    "path": "开发与验证/favicon.svg",
+    "bytes": 510,
+    "sha256": "E539F1F65577E2ABBA50DBC51567763C4B3B0A15F3CB909574DBBC255C3BDAAF"
+  },
+  {
+    "path": "开发与验证/folklore.js",
+    "bytes": 27266,
+    "sha256": "C3A76FFED9E70A582AE88C1A4E5C5D69EC909027639F82874748681385CB70BB"
+  },
+  {
+    "path": "开发与验证/gaze-hop-fix.js",
+    "bytes": 4747,
+    "sha256": "E5EFDB7D1A44AE9D356ABCBCDCD2ED4D145658BC16CC3C46FD844C3462E02654"
+  },
+  {
+    "path": "开发与验证/gaze-life.js",
+    "bytes": 2849,
+    "sha256": "CE13EBA62C5F440E831E4CE8F04C0F1265B59D1B70D164267CB5B87FF6DE6158"
+  },
+  {
+    "path": "开发与验证/group-photo.js",
+    "bytes": 19840,
+    "sha256": "0CBAF9E29EC96C1F853A6A0B58A0956C350BD21A3E28B5C86F38344B32AB6B23"
+  },
+  {
+    "path": "开发与验证/i18n-fill.js",
+    "bytes": 4493,
+    "sha256": "38DC6D82CD1F79A7B2C268B1EF89374717EDB0F93C1299E34817BF43C4BA76BB"
+  },
+  {
+    "path": "开发与验证/locale-lookbook.js",
+    "bytes": 32130,
+    "sha256": "69E98EEA8C7FBE963EF0E03B804D5AB48C9AAA3377A833A04A77B350B3E2FB3F"
+  },
+  {
+    "path": "开发与验证/mem-tag.js",
+    "bytes": 2315,
+    "sha256": "9BF0B70F4ACF3D54CB769B65D943AC72EB079BC36960738A43E4D2468981FE2B"
+  },
+  {
+    "path": "开发与验证/memory-tame.js",
+    "bytes": 5176,
+    "sha256": "60789AE6E46D80FACF24E976B3DFB177F20B63D303B06E05746AE2D16833EA11"
+  },
+  {
+    "path": "开发与验证/mobile-fit.js",
+    "bytes": 2788,
+    "sha256": "8F72863E28277C356EE61EF457F8F69CA87E146455445F4C39B857E8043F7452"
+  },
+  {
+    "path": "开发与验证/move-sound.js",
+    "bytes": 4215,
+    "sha256": "C0949215D714A54C7818245548140347A90540BBA31ABD3D78278C896EC29C7C"
+  },
+  {
+    "path": "开发与验证/neck-mode.js",
+    "bytes": 4384,
+    "sha256": "539BA8D6C8686A0E7B8E8C3C6819AFADA5D1871882FB25008DE3B3D06F0E70EC"
+  },
+  {
+    "path": "开发与验证/new-faces.js",
+    "bytes": 15772,
+    "sha256": "0005B8B20FD63F6F4B64E786F3345BF719C7796E9C3329AA89572A81455CC494"
+  },
+  {
+    "path": "开发与验证/panel-design.js",
+    "bytes": 12413,
+    "sha256": "9CDD577A57A9C780BB0035D588975BBAF69C37FC6B0DD8099437070E0081840C"
+  },
+  {
+    "path": "开发与验证/photo-lab.js",
+    "bytes": 22140,
+    "sha256": "3A8A56D9815044D96147529F5AE374B185B700CFFE45F3B2FF060F4A0B1559B3"
+  },
+  {
+    "path": "开发与验证/pointer-turn.js",
+    "bytes": 2424,
+    "sha256": "993FF6974FDDC7E2D52CC6006FBD73CD7D95D09F07182D76B5C1DB98D32114E9"
+  },
+  {
+    "path": "开发与验证/portrait-evolution.js",
+    "bytes": 15987,
+    "sha256": "88FFB323BB5B0E31FBF4EB0CDE2F5D5AA752E633C79A5FC86E2B91F5B1DE1A4F"
+  },
+  {
+    "path": "开发与验证/scale-play.js",
+    "bytes": 10481,
+    "sha256": "B940F8668CC26C512C383A9C8589523072CBEADCE76BEA43442F025FD6B865EE"
+  },
+  {
+    "path": "开发与验证/studio.js",
+    "bytes": 31900,
+    "sha256": "8D4C34A43DECE7D37047C442F7852BCA6D9865D37CA74900AF9A90AFF742F25C"
+  },
+  {
+    "path": "开发与验证/touch-feel.js",
+    "bytes": 14557,
+    "sha256": "4AAA3E639F516D805E296EE44151370991A5A7EEB7D4A77003CE49557206ED51"
+  },
+  {
+    "path": "开发与验证/wall-submit.js",
+    "bytes": 6164,
+    "sha256": "6205780951EAA8CC39DD10DEBF2A1E523A7F4C7DDE1FE320481B03B0B8253858"
+  },
+  {
+    "path": "情绪件存储与生成-r37.md",
+    "bytes": 3411,
+    "sha256": "60D3C31D0962FF5B209461267CF30F2F4B645A1C18974FDA88F977F334FB061D"
+  },
+  {
+    "path": "手感与手机端-r34.md",
+    "bytes": 2898,
+    "sha256": "34043D01825D7243528C2E70C12FC1D0B1B20A02281F5C332F599801E359011A"
+  },
+  {
+    "path": "新增角色与形象准则-r19.md",
+    "bytes": 5224,
+    "sha256": "358C3933A59AB5E79341DC832F9B588C0DE1BD037C754BE6955B07312AD19987"
+  },
+  {
+    "path": "暗房与键位-r31.md",
+    "bytes": 4468,
+    "sha256": "45D198D82FC571C9F305367D203BBDD94E324464CE1E2901E5B7C76C50AE05F2"
+  },
+  {
+    "path": "查漏补缺-r36.md",
+    "bytes": 2173,
+    "sha256": "3D11ECAD6CD0704CBE4A6AEBA48D78D70201569831237C6A27B60A55215D6FDE"
+  },
+  {
+    "path": "样张/01-五角色六画材.png",
+    "bytes": 697110,
+    "sha256": "8E18FC96527B0FF1C4404C263AA541D0547DEDE54F40BE165AE7E1ED54328383"
+  },
+  {
+    "path": "样张/02-笔触密度对照.png",
+    "bytes": 106625,
+    "sha256": "66D66C4F79C5E6AA89021BAA83225FFE383C98A21E642AC0BD8E61335B068E80"
+  },
+  {
+    "path": "样张/03-cabinet.png",
+    "bytes": 645075,
+    "sha256": "3CB52AA9C6FB3EB4BC325120818F45D3B17CEA62AD8B4115CBA2FD217CDD91F5"
+  },
+  {
+    "path": "样张/03-curios.png",
+    "bytes": 553174,
+    "sha256": "7A8B2A2C2B8746F45F66348186A5E4B98A9BAE50EACA15DC6562405F76C52D4F"
+  },
+  {
+    "path": "样张/03-garden.png",
+    "bytes": 599821,
+    "sha256": "EB5E73B65409CCD2427F837DA87A2FED214E8BE618E7119ED3D326E022062B70"
+  },
+  {
+    "path": "样张/04-迎风反应.png",
+    "bytes": 241586,
+    "sha256": "B1C9F041F6CE27A745FAD09FD4CD1199C5E940AFAFCB57BD148C492BA09D1B09"
+  },
+  {
+    "path": "样张/05-潮间带八角色.png",
+    "bytes": 257847,
+    "sha256": "D8342DADFBC7F888F5C85A0459243742E7D9100BC2FEF297A965F48545DCB023"
+  },
+  {
+    "path": "样张/06-动画来客.png",
+    "bytes": 385880,
+    "sha256": "189F4DD6DB1B748D45226B84899C9D86458E8EE85BD5D04B892D34918C81D57F"
+  },
+  {
+    "path": "样张/07-混生物种.png",
+    "bytes": 187424,
+    "sha256": "17C8FE319D029516F5A5E55A55E04BEF41976C8CB7286DF9586FC7C6917B64DD"
+  },
+  {
+    "path": "样张/08-招牌动作帧.png",
+    "bytes": 453379,
+    "sha256": "6AE40BA13ACECFD887E03D57C6BF2D4616A0050CE40667E76787A357E9B168A3"
+  },
+  {
+    "path": "样张/09-各显神通.gif",
+    "bytes": 2841615,
+    "sha256": "30D18A2826E859BE355D187F7B9855797EAA724F4600B9FFFDFD174E6CDE5B02"
+  },
+  {
+    "path": "样张/10-八种风格预设.png",
+    "bytes": 375652,
+    "sha256": "D404E8874F654D411473E8D3B958DAAFF9817CB606841649F879FFD13D637978"
+  },
+  {
+    "path": "样张/11-默认7列6行.png",
+    "bytes": 346011,
+    "sha256": "CA8DBA71A8E7BF973BEA7E708F542C73ECDAC7FE6ECB818F9B8750EB79976A6E"
+  },
+  {
+    "path": "样张/12-国风葫芦.png",
+    "bytes": 203059,
+    "sha256": "3AC6238723072902D0C7E6F5BA5045682D3D0127BE3961DF150CE3A5D07AC951"
+  },
+  {
+    "path": "样张/13-西游行旅.png",
+    "bytes": 124230,
+    "sha256": "648E4CBF4E3F1144B7E00E5EB5C1B8231207D20FBC1D15ED87F4AC250C3A0293"
+  },
+  {
+    "path": "样张/14-山海异兽.png",
+    "bytes": 115533,
+    "sha256": "F2FB3E9BA26BB26C7491856C21E41812ED2866A4AC1659650BF8D12EB288FF77"
+  },
+  {
+    "path": "样张/15-百鬼小町.png",
+    "bytes": 100060,
+    "sha256": "F4E5D32471FD6DA335B6793D589F44EC9F181740C8B0A40EE9374630DC0B5222"
+  },
+  {
+    "path": "样张/16-欧洲神话人物.png",
+    "bytes": 313034,
+    "sha256": "7A790F843D3367146245D2B5719295BFFF1067C8A503E5C0AA4E8D2122C47499"
+  },
+  {
+    "path": "样张/16-远山巨人.png",
+    "bytes": 112595,
+    "sha256": "D6DCA638F8DBE92E1ACF90A7800A38395E6957DF31A46FA9E4B304389547A3CA"
+  },
+  {
+    "path": "样张/17-国风7列6行.png",
+    "bytes": 646794,
+    "sha256": "B4D853A2D76FD1E414628A17BBCA45975BAE8920243FC46B03D751BC4A10767A"
+  },
+  {
+    "path": "样张/18-承托结构对照.png",
+    "bytes": 250515,
+    "sha256": "B37D49684C15D5710DE87E8E46CAA8490DA7FA78EAEDCDA46072CAAD0AFE6812"
+  },
+  {
+    "path": "样张/19-繁衍混生.png",
+    "bytes": 100273,
+    "sha256": "399C5C69E89AA73AE3F345B02B918793F43D5AE55B0CE3D319865EBB70ADC11F"
+  },
+  {
+    "path": "样张/20-欧洲神话画材对照.png",
+    "bytes": 308355,
+    "sha256": "2E825EA2C8C2D3940C61D16BD5F751313451B8394CD0DB76C96B5B50449198AF"
+  },
+  {
+    "path": "样张/20-远山巨人画材对照.png",
+    "bytes": 347536,
+    "sha256": "490436CB43BBEFFE2236EE8B66A33503ADA9D7F88C71005B5F3A304060451070"
+  },
+  {
+    "path": "样张/21-经典半身与巨人脸型对照.png",
+    "bytes": 206248,
+    "sha256": "146DD2DA9819720AA4DE264EB6A9243104671A81AE1C9C59E72F2AECA3BECF74"
+  },
+  {
+    "path": "样张/21-经典半身与欧洲神话脸型对照.png",
+    "bytes": 228378,
+    "sha256": "A17B0340F55866023FC1BCAF1DF56D15AC28430C108DC1379A119DFB49D78BB4"
+  },
+  {
+    "path": "样张/22-新主题统一人像.png",
+    "bytes": 378160,
+    "sha256": "A0D5FAFF277B2B4CD973E0E56F647D4B04C8191E306E62B0E716B5285B0381DC"
+  },
+  {
+    "path": "样张/23-角色继承标志.png",
+    "bytes": 245841,
+    "sha256": "1FB1C80F7AD30DB89DBD6163FA83C03367C1D7781A8A616AABBBF88F6D6351AB"
+  },
+  {
+    "path": "样张/24-繁衍两代观察.png",
+    "bytes": 371688,
+    "sha256": "8A74D453313B3E1ADAD63029823966D2D882C5EE691F0A3F7D7615A192DA5CDE"
+  },
+  {
+    "path": "版本信息.json",
+    "bytes": 3505,
+    "sha256": "B2D23BC8969D8BCB6636CCA4DE4AC603D332BC03C8F8709E84A6BBE42B5824A8"
+  },
+  {
+    "path": "版本记录.md",
+    "bytes": 43371,
+    "sha256": "2E754CEEBDF67721A286C3905271C362C850CEEB44983E68C43FFD4DBC953DDF"
+  },
+  {
+    "path": "班级人像与天演-r32.md",
+    "bytes": 2740,
+    "sha256": "2CA36F35786E7764DC30A5B895E18D34FE9CC502679C9DDFC2F705CEAA57C231"
+  },
+  {
+    "path": "眼神音色与菜单-r24.md",
+    "bytes": 3287,
+    "sha256": "F47BDFE5FE3898DC0640799BA4C7E5F243D4D1953E20628AFA4F7BE171054729"
+  },
+  {
+    "path": "纵向修正与合照-r29.md",
+    "bytes": 2939,
+    "sha256": "3E1D7295BDAC0B1208D14641A665A9D660BA50DFAA67EA234D1E5385A9B67C0E"
+  },
+  {
+    "path": "行列快捷-r27.md",
+    "bytes": 1586,
+    "sha256": "D9338076AEBAD95808805E77E886CA6A92C7EB4AC65AECE26FA862F1DFB5C283"
+  },
+  {
+    "path": "角色修订说明-r15.md",
+    "bytes": 4045,
+    "sha256": "0DA61DA122D7DF9FB5C416B424021D936FC2ABC9673E85B33DEE175D5E8B7BB9"
+  },
+  {
+    "path": "触感设计-r20.md",
+    "bytes": 3391,
+    "sha256": "089B596D4295476FD43E02B64B04DE008A3AD6F126C568B06E826FE0752BC7A0"
+  },
+  {
+    "path": "词条收口-r41.md",
+    "bytes": 2021,
+    "sha256": "093A4525A9C8A7CF3BCF0DB1065B2C8C90D919211E6C1DDD721019722EB6DB3C"
+  },
+  {
+    "path": "课堂大屏模式-r40.md",
+    "bytes": 1802,
+    "sha256": "9F1911A8E7AF2AF7B1EBD2F8069D1479F53948E0D8408F8F95DE7A008B094662"
+  },
+  {
+    "path": "返回与移动出声-r25.md",
+    "bytes": 2896,
+    "sha256": "82356EDD787EBC0CEC4CDBCDFEDE714EF36C3D83F2D914DEE64C854CFAE6A0CC"
+  },
+  {
+    "path": "远山巨人参考与绘制说明-v13.md",
+    "bytes": 5937,
+    "sha256": "695DEAE49657B6C92F9903989D697224A84AA14AA7C2446B6E422105AEAD726A"
+  },
+  {
+    "path": "配色与繁衍-r16.md",
+    "bytes": 5293,
+    "sha256": "59D17696467DF3378A2BF34E8A660632F3270EE37DE2952C7CA679A1264C7A90"
+  },
+  {
+    "path": "键位冲突修正-r30.md",
+    "bytes": 2108,
+    "sha256": "E178930B2416450446216A7CCD981E617A42E3810C2934038BBE1116231DA813"
+  },
+  {
+    "path": "音阶与把手-r22.md",
+    "bytes": 3637,
+    "sha256": "C9D3A45EC4CEEEC752ED04C8C023417A4EC64769530143D917F956626A41EA9E"
+  },
+  {
+    "path": "验证说明.md",
+    "bytes": 25822,
+    "sha256": "090C4A1899006C130BD2588D93717889DB0E740EE3A8F596CA55E06326D23850"
+  }
+]

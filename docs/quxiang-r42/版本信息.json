@@ -1,0 +1,90 @@
+{
+  "product": "趣像",
+  "version": "13.0.0",
+  "release": "files-13",
+  "date": "2026-09-22",
+  "status": "candidate-r42",
+  "baseline": "files-12-v12.1.0-final-r2.zip",
+  "artifacts": [
+    "files-13-v13.0.0-candidate-r37.zip",
+    "files-13-v13.0.0-candidate-r19.zip",
+    "files-13-v13.0.0-candidate-r17.zip",
+    "files-13-v13.0.0-candidate-r15.zip",
+    "files-13-v13.0.0-candidate-r14.zip",
+    "files-13-v13.0.0-candidate-r13.zip",
+    "files-13-v13.0.0-candidate-r12.zip",
+    "files-13-v13.0.0-candidate-r11.zip",
+    "files-13-v13.0.0-candidate-r10.zip",
+    "files-13-v13.0.0-candidate-r9.zip",
+    "files-13-v13.0.0-candidate-r8.zip",
+    "files-13-v13.0.0-candidate-r7.zip",
+    "files-13-v13.0.0-candidate-r6.zip",
+    "files-13-v13.0.0-candidate-r5.zip",
+    "files-13-v13.0.0-candidate-r4.zip",
+    "files-13-v13.0.0-candidate-r2.zip",
+    "files-13-v13.0.0-candidate-r1.zip",
+    "files-13-v13.0.0-candidate.zip"
+  ],
+  "defaultStage": {
+    "columns": 7,
+    "rows": 6,
+    "slots": 42
+  },
+  "catalogue": {
+    "species": 78,
+    "structuralSpecies": 63,
+    "orderedHybrids": 3906,
+    "newCharacters": 37,
+    "newSeries": 5
+  },
+  "features": [
+    "send the class photo to the campus wall (W in the photo lab); the wall shows it as a wide entry without a genome code"
+  ],
+  "verification": {
+    "logicCanvas": 54,
+    "browserTested": true,
+    "browserSmoke": "passed-localhost (headless Chromium, 1440x900 / 390x780)",
+    "browserScope": [
+      "r19 default cast is the classic half-bust folio, 15 kinds on a 7x6 stage",
+      "r19 folios: gourd 7, journey 8, yokai 7, shanhai 6, cartoons 13, cabinet 15, tidal 8, europe 9",
+      "new characters open cards with real subject/inheritance rows; no console errors",
+      "new characters breed (A child is born) and carry 8-word tags",
+      "r17 all 15 scenes render, no console errors",
+      "atlas group select/clear/collapse counters",
+      "hybrid bench creates a new species on stage",
+      "scene switch and Ctrl+Z undo round trip",
+      "card exports write real files (card 6.8-10s, avatar 1.1s, transparent 2.7s, turntable 10s)",
+      "export busy state locks buttons and reports progress",
+      "help sheet, footer legend and breed prompt fully Chinese in zh-CN, fully English in en",
+      "phone 375x720 and tablet 768x1024: no horizontal overflow; long press opens the card",
+      "sound toggle round trip",
+      "reduce-motion still plays finales with reduced travel"
+    ],
+    "server": "127.0.0.1:4173",
+    "notVerified": [
+      "real touch hardware long press",
+      "audio timbre on real speakers",
+      "long-run performance and heat on classroom machines"
+    ]
+  },
+  "rollback": [
+    "files-13-v13.0.0-candidate-r37.zip (previous in-session build: r36)",
+    "files-13-v13.0.0-candidate-r19.zip (previous in-session build: r18)",
+    "files-13-v13.0.0-candidate-r15.zip",
+    "files-13-v13.0.0-candidate-r14.zip",
+    "files-13-v13.0.0-candidate-r13.zip",
+    "files-13-v13.0.0-candidate-r12.zip",
+    "files-13-v13.0.0-candidate-r11.zip",
+    "files-13-v13.0.0-candidate-r10.zip",
+    "files-13-v13.0.0-candidate-r9.zip",
+    "files-13-v13.0.0-candidate-r8.zip",
+    "files-13-v13.0.0-candidate-r7.zip",
+    "files-13-v13.0.0-candidate-r6.zip",
+    "files-13-v13.0.0-candidate-r5.zip",
+    "files-13-v13.0.0-candidate-r4.zip",
+    "files-13-v13.0.0-candidate-r2.zip",
+    "files-13-v13.0.0-candidate-r1.zip",
+    "files-13-v13.0.0-candidate.zip",
+    "files-12-v12.1.0-final-r2.zip"
+  ]
+}
