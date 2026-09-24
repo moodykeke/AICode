@@ -86,10 +86,14 @@ autoThrottle = function () {
   /* 键盘焦点圈 */
   var F = { i: -1 };
   window.__a11yFocus = F;
-  cv.addEventListener('focus', function () { if (F.i < 0) F.i = 0; });
+  /* 只在键盘操作时出现焦点圈：鼠标/手指点舞台也会让画布获得焦点，那时不画圈（r47 修：以前点一下舞台，左上角那张脸就一直套着红圈） */
+  var kbFocus = function () { try { return cv.matches(':focus-visible'); } catch (e) { return false; } };
+  cv.addEventListener('focus', function () { if (F.i < 0 && kbFocus()) F.i = 0; });
   cv.addEventListener('blur', function () { F.i = -1; });
+  cv.addEventListener('pointerdown', function () { F.i = -1; }, { passive: true });
   window.addEventListener('keydown', function (e) {
-    if (document.activeElement !== cv || F.i < 0 || cardOpen || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (document.activeElement !== cv || cardOpen || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (F.i < 0) { if (/^Arrow/.test(e.key)) { F.i = hovered ? heads.indexOf(hovered) : 0; if (F.i < 0) F.i = 0; } else return; }
     var c = F.i % cols, r = Math.floor(F.i / cols), moved = true;
     if (e.key === 'ArrowLeft') c = (c + cols - 1) % cols; else if (e.key === 'ArrowRight') c = (c + 1) % cols;
     else if (e.key === 'ArrowUp') r = (r + rows - 1) % rows; else if (e.key === 'ArrowDown') r = (r + 1) % rows;

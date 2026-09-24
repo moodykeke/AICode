@@ -70,7 +70,7 @@ UI_PAIRS.push(['显示/收起工具栏', 'Show/hide the toolbar'], ['重拍', 'R
     '#toolDeck{position:absolute;left:0;right:0;top:0;z-index:30;display:flex;flex-direction:column;transition:opacity .4s ease}' +
     '#toolDeck #studioBar,#toolDeck #playBar{box-shadow:0 6px 18px rgba(56,47,36,.10)}' +
     '#toolDeck #studioBar{background:rgba(243,239,228,.9)!important}#toolDeck #playBar{background:rgba(232,238,229,.88)!important}' +
-    '#toolDeck.rest{opacity:.12}#toolDeck.rest:hover,#toolDeck.rest:focus-within{opacity:1}' +
+    '#toolDeck.rest{opacity:.55}#toolDeck.rest:hover,#toolDeck.rest:focus-within{opacity:1}' +
     '#sheet.immersive #toolDeck{pointer-events:none}';
   document.head.appendChild(st);
   /* 有鼠标的设备：空闲 6 秒变淡；指针到上方 64px 或按键时复原 */

@@ -34,7 +34,6 @@ node build.cjs --verify     # 只做补丁契约检查：命中/失配清单（�
 | `gestures-r46.js` | r46 触屏手势收敛（轻触 / 长按 / 单指划 / 双指） |
 | `power-a11y-r46.js` | r46 省电模式、无障碍（舞台说明、aria-live、键盘焦点） |
 | `evolve-more-r46.js` | r46 生态缸第三期：时间倒带、食物链与共生、进化延时、海报送展墙 |
-| `head-cache-r47.js` | r47 经典半身像逐头帧缓存（闲着的头隔帧重画） |
 | `evolve-voice-r47.js` | r47 生态缸台词与气候声景 |
 
 ## 两条约定
