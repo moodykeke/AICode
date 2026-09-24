@@ -526,9 +526,7 @@ function evoPosterCanvas() {
 function evoPosterSave(c) {
   c.toBlob(function (b) {
     if (!b) { toast(evoL('海报生成失败。', 'Poster failed.'), 2000); return; }
-    var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'quxiang-tank-gen' + EVO.gen + '.png'; document.body.appendChild(a); a.click();
-    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
-    toast(evoL('进化史海报已保存。', 'Evolution poster saved.'), 2200);
+    saveFile('quxiang-tank-gen' + EVO.gen + '.png', b);          /* 走基线的保存：在 claude.ai 页面里用平台下载，其余浏览器直接下载 */
   }, 'image/png');
 }
 

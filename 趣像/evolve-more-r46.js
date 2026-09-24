@@ -140,8 +140,7 @@ async function evoTimelapse() {
 }
 function evoDownload(blob, name) {
   if (!blob) return;
-  var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
-  setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 3000);
+  saveFile(name, blob);
 }
 
 /* ========== 四、海报送展墙 ========== */
