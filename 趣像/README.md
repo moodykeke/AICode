@@ -28,6 +28,9 @@ node build.cjs --verify     # 只做补丁契约检查：命中/失配清单（�
 | `fun-r43.js` | r43 趣味合奏、合影队形 / 倒数 / 拍照瞬间 / 相框 |
 | `card-words-r44.js` | r44 经典角色卡片的中文文字（名字、物种、特征、爱好与害怕）；`cardBio()` 登记卡片背面文字 |
 | `evolve-r44.js` | r44 投放进化 · 生态缸（投放、繁衍、突变、气候选择、喂食、陨石、物种志） |
+| `packs-r45.js` | r45 角色包登记表 `QX_PACKS`、角色包浏览器、整包上台 |
+| `ui-r45.js` | r45 上下文层 `QX_CTX`、键位登记 `QX_KEYS`、工具栏浮层、手机底部五键 |
+| `evolve-plus-r45.js` | r45 生态缸第二期：神话血统、分区、天灾、进化树、图鉴与成就、挑战、缸码、海报 |
 
 ## 两条约定
 
@@ -38,7 +41,7 @@ node build.cjs --verify     # 只做补丁契约检查：命中/失配清单（�
 ## 相关文档
 
 - 每批的验收与设计：`docs/fun/quxiang-rNN/`（含 `开发与验证/` 源码快照、版本记录、验证说明）
-- 本仓库：`docs/quxiang-r42/`（r42 归档文档）、`docs/quxiang-r43/`（r43 设计、性能、界面方案、样张）、`docs/quxiang-r44/`（生态缸、角色包与分享互动设计）
+- 本仓库：`docs/quxiang-r42/`（r42 归档文档）、`docs/quxiang-r43/`（r43 设计、性能、界面方案、样张）、`docs/quxiang-r44/`（生态缸、角色包与分享互动设计）、`docs/quxiang-r45/`（生态缸第二期、界面 P1 与角色包）
 - 高观点审查与增强方案：`docs/fun/趣像-高观点审查与增强方案-20260923.md`
 - 头像管线：`bin/process-student-avatars.py`、情绪件：`bin/generate-avatar-emotions.py`
 - 回归套件：`bin/quxiang-regress.mjs`

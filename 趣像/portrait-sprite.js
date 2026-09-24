@@ -10,7 +10,8 @@ var SPRITE = { on: true, cache: new Map(), bytes: 0, max: 3 * 1048576, bakes: 0,
 var SPRITE_SKIP = { yokai_umbrella: 1, hill_zhulong: 1 };   // 伞怪独眼即脸；烛龙闭眼焰暗，都要逐帧现画
 
 function spriteKind(sp){ return (FOLK_INFO[sp] || PORTRAIT_ALIAS[sp]) && !SPRITE_SKIP[sp]; }
-function spriteSig(){ return [PAPER, MAPKEY, CFG.line, CFG.wobble, CFG.mono ? 1 : 0].join('|'); }
+// r45：配色方案、浓淡、颜料、湿度变了也要整体清空（以前只看纸色与当前那张脸的配色表，换配色后会贴出旧图）
+function spriteSig(){ return [PAPER, CFG.line, CFG.wobble, CFG.mono ? 1 : 0, (CFG.palettes || []).join(','), CFG.density, CFG.pigment, CFG.wetness].join('|'); }
 function spriteClear(){ SPRITE.cache.clear(); SPRITE.bytes = 0; }
 function spriteTrim(){
   var it = SPRITE.cache.keys();
@@ -32,14 +33,14 @@ function spriteTrim(){
   atlasEye = recorder(atlasEye, null, 4);        // atlasEye(x,y,r,seed,blink,iris)：第 5 个参数是眨眼量
 })();
 
-function spriteBake(h, k, base){
+function spriteBake(h, k, base, lwNom){
   var X0 = 2.0, Y0 = 1.85, w = Math.ceil(2*X0*k), hh = Math.ceil(2*Y0*k);
   var c = document.createElement('canvas'); c.width = w; c.height = hh;
   if (typeof MEM_TAG === 'function') MEM_TAG(c, 'portrait-sprite');
-  var recs = [], oldYaw = h.yaw, lw = LW, galpha = GALPHA;
+  var recs = [], oldYaw = h.yaw, lw = LW, galpha = GALPHA, lwBake = lwNom || LW;
   var o0 = {ox:0, oy:0, hs:1, mouth:0, smile:0, eye:0, brow:0, gazeX:0, gazeY:0, flap:0, perform:0, wind:0, life:0};
   renderTo(c.getContext('2d'), PAT, LINE_K, function(){
-    ctx.setTransform(k, 0, 0, k, X0*k, Y0*k); LW = lw; GALPHA = 1; h.yaw = 0; ART_BAKE = recs;
+    ctx.setTransform(k, 0, 0, k, X0*k, Y0*k); LW = lwBake; GALPHA = 1; h.yaw = 0; ART_BAKE = recs;
     try { base.call(h, o0); } finally { ART_BAKE = null; h.yaw = oldYaw; GALPHA = galpha; }
   });
   LW = lw;
@@ -52,17 +53,18 @@ function spriteBake(h, k, base){
 var spriteBaseNatural = Head.prototype.drawNatural;
 Head.prototype.drawNatural = function(o){
   if (!SPRITE.on || ctx !== gctx || !spriteKind(this.g.sp) || o.neck || (o.melt||0) > .01 || (o.ice||0) > .02 || GALPHA < .999 ||
-      Math.abs(o.perform||0) > .04 || Math.abs(o.wind||0) > .08 || (typeof PHOTO !== 'undefined' && PHOTO && PHOTO.active)) { SPRITE.live++; return spriteBaseNatural.call(this, o); }
+      Math.abs(o.perform||0) > .04 || Math.abs(o.wind||0) > .08 || (typeof PHOTO !== 'undefined' && PHOTO && PHOTO.active) ||
+      (this.pop||1) < .85) { SPRITE.live++; return spriteBaseNatural.call(this, o); }   // r45：弹出/缩小动画中途不烘焙（线宽按 1/pop 放大过）
   var M = ctx.getTransform(), kNow = Math.hypot(M.a, M.b), kNom = kNow / Math.max(.05, (this.pop||1)*(o.hs||1));
   // 网格里所有格子同尺寸：按实际尺寸烘焙，1:1 贴图不发虚；簇状/单人构图大小不一，按 6% 一档合用，避免一人一张
   var bucket = CFG.composition === 'grid' ? Math.round(kNom*4)/4 : Math.round(Math.exp(Math.round(Math.log(kNom)/.0583)*.0583)*4)/4;
   bucket = Math.max(16, bucket);
   if (bucket > 110) { SPRITE.live++; return spriteBaseNatural.call(this, o); }
   var sig = spriteSig(); if (sig !== SPRITE.sig) { spriteClear(); SPRITE.sig = sig; }
-  var key = this.g.sp + '|' + this.g.fur + '|' + (this.g.donor||'') + '|' + (this.g.motifVariant||0) + '|' + STYLE + '|' + (COLOR ? 1 : 0) + '|' + bucket;
+  var key = this.g.sp + '|' + this.g.fur + '|' + (this.g.donor||'') + '|' + (this.g.motifVariant||0) + '|' + (this.g.colourVariant||0) + '|' + STYLE + '|' + MAPKEY + '|' + (COLOR ? 1 : 0) + '|' + bucket;
   var e = SPRITE.cache.get(key);
   if (e) { SPRITE.cache.delete(key); SPRITE.cache.set(key, e); SPRITE.hits++; }
-  else { e = spriteBake(this, bucket, spriteBaseNatural); SPRITE.cache.set(key, e); SPRITE.bytes += e.bytes; spriteTrim(); }
+  else { e = spriteBake(this, bucket, spriteBaseNatural, LW * Math.max(.05, (this.pop||1)*(o.hs||1))); SPRITE.cache.set(key, e); SPRITE.bytes += e.bytes; spriteTrim(); }
   ctx.save();
   ctx.scale(.76 + .24*Math.abs(Math.cos(this.yaw)), 1);
   ctx.drawImage(e.canvas, -e.X0, -e.Y0, e.canvas.width/e.k, e.canvas.height/e.k);

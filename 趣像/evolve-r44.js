@@ -43,6 +43,12 @@ function evoHex(hex) {
 }
 /* 适应度：1 = 刚好过得去；每条理由都记下来，物种志里用得上 */
 function evoFit(g, climate) {
+  if (g.natural) {                                     /* 神话角色：看它所在的包在这种气候的底子 */
+    var P = typeof QX_PACKS !== 'undefined' ? QX_PACKS.packOf(g.sp) : null, b = P && P.evolve && P.evolve.climate ? (P.evolve.climate[climate] || 0) : 0;
+    var why = (typeof EVO_PACK_WHY !== 'undefined' && P && EVO_PACK_WHY[P.id] && EVO_PACK_WHY[P.id][climate]) || (b > 0 ? ['老家就是这种天气', 'feels like home'] : ['水土不服', 'far from home']);
+    var r = b ? [b, why[0], why[1]] : null, dn = g.donor ? .05 : 0;
+    return { f: clamp(1 + b + dn, .3, 1.6), best: r && b > 0 ? r : (dn ? [dn, '血统混杂', 'mixed blood'] : null), worst: r && b < 0 ? r : null };
+  }
   var c = evoHex(g.fur), lum = c.l;
   var fluffy = clamp(g.fluff || 0, 0, 1.2) / 1.2 * .7 + (g.hair && g.hair !== 'none' && g.hair !== 'bald' ? .3 : 0) + (g.beard ? .2 : 0) + (g.feathers ? .2 : 0);
   var ear = g.topEars ? g.topEars.len : (g.sideEars ? .3 : .15);
@@ -106,6 +112,12 @@ function evoColour(g) {
   return ['棕', 'brown'];
 }
 function evoName(g) {
+  if (g.natural) {
+    var hs = typeof QX_PACKS !== 'undefined' ? QX_PACKS.short(g.sp) : String((NATURAL_INFO[g.sp] || {}).name || g.sp), hen = String((NATURAL_INFO[g.sp] || {}).en || g.sp);
+    var ds = g.donor ? (typeof QX_PACKS !== 'undefined' ? QX_PACKS.short(g.donor) : String((NATURAL_INFO[g.donor] || {}).name || g.donor)) : '', den = g.donor ? String((NATURAL_INFO[g.donor] || {}).en || g.donor) : '';
+    var zh0 = hs + (ds ? '（' + ds + '血统）' : ''), hh = 0; for (var q = 0; q < zh0.length; q++) hh = (hh * 31 + zh0.charCodeAt(q)) >>> 0;
+    return { key: zh0, zh: zh0, en: hen + (den ? ' with ' + den + ' blood' : ''), hue: hh % 360, hybrid: !!ds, sp: g.sp, natural: true };
+  }
   var sp = g.sp, parts = [], mods = ['ears', 'eyes', 'snout'];
   for (var i = 0; i < 3; i++) { var src = g.src[i + 1]; if (src === sp) continue; var p = (EVO_PARTS[mods[i]] || {})[src]; if (p && p[0]) parts.push(p); }
   if (sp !== 'human' && g.hair && g.hair !== 'none' && EVO_HAIR[g.hair]) parts.push(EVO_HAIR[g.hair]);
@@ -136,6 +148,11 @@ var EVO_FOUNDERS = [
   ['robot', '不怕冷不怕热，会生锈；不能自己克隆，得借别人的零件拼出下一代。', 'Heat- and cold-proof, but rusts; can’t clone itself — needs a partner’s parts.'],
   ['alien', '从天上投下来的，来路不明；突变率是别人的三倍。', 'Dropped from the sky, origin unknown; mutates three times as often.']
 ];
+function evoFounderDNA(sp) {
+  if (sp === 'random') { var P = typeof QX_PACKS !== 'undefined' && EVO.pack ? QX_PACKS.byId[EVO.pack] : null; sp = P ? evoRand(P.members) : evoRand(EVO_FOUNDERS)[0]; }
+  if (typeof QX_PACKS !== 'undefined' && !QX_PACKS.isClassic(sp)) { var d = QX_PACKS.dna(sp); if (d) return d; }
+  return pureDNA(evoFounderSeed(sp));
+}
 function evoFounderSeed(sp) {
   if (sp === 'random') sp = evoRand(EVO_FOUNDERS)[0];
   for (var i = 0; i < 900; i++) { var s = randSeed(); if (baseGenes(s).sp === sp) return s; }
@@ -172,10 +189,21 @@ act = function (h, name) {
 };
 
 /* ========== 五、一代 ========== */
+/* 分区（r45）：右半边可以是另一种气候 */
+function evoClimateOf(h) { return EVO.climate2 && h && h.col >= Math.ceil(cols / 2) ? EVO.climate2 : EVO.climate; }
 function evoLive(h) { return !h.hidden && !h.evoDying && h.evo; }
 function evoEmpty(h) { return h.hidden && !h.evoDying && !h.evoReserved; }
 function evoNear(h) { return heads.filter(function (o) { return o !== h && Math.abs(o.row - h.row) <= 1 && Math.abs(o.col - h.col) <= 1; }); }
+/* 经典与经典、神话与神话才通婚（神话角色是整张画，靠"血统"（借体标志）把招牌传下去） */
+function evoCanMate(a, b) { return !!a.g.natural === !!b.g.natural; }
+function evoCross(a, b) { return (a.length > 7 || b.length > 7) ? crossDNA(a.slice(), b.slice()) : crossDNA(a.slice(0, 7), b.slice(0, 7)); }
 function evoMutate(d) {
+  if (d.length > 7) {                                  /* 神话：换花色 / 丢了血统 / 得到同包另一位的血统 */
+    var x = Math.random(), host = NATURAL[d[7] - 1], P = typeof QX_PACKS !== 'undefined' ? QX_PACKS.packOf(host) : null;
+    if (x < .25 && d.length > 8) { var lost = NATURAL[d[8] - 1]; d.length = 8; return { natural: 'lost', from: lost, to: host, locus: 7 }; }
+    if (x < .5 && P && P.members.length > 1) { var k = evoRand(P.members.filter(function (m) { return m !== host; })), t = NATURAL.indexOf(k) + 1; if (t > 0) { d[8] = t; return { natural: 'gain', from: host, to: k, locus: 8 }; } }
+    var j = 4 + ((Math.random() * 2) | 0); d[j] = randSeed(); return { natural: 'tint', from: host, to: host, locus: j };
+  }
   var i = Math.random() < .12 ? 0 : 1 + ((Math.random() * 6) | 0), old = d[i];
   d[i] = randSeed();
   return { locus: i, from: baseGenes(old).sp, to: baseGenes(d[i]).sp };
@@ -230,7 +258,7 @@ function evoGeneration() {
   });
   /* 死：衰老、拥挤、不适应 */
   alive.forEach(function (h) {
-    var e = h.evo, L = EVO_LIFE[h.g.sp] || { r: 0, l: 0 }, F = evoFit(h.g, C);
+    var e = h.evo, L = EVO_LIFE[h.g.sp] || { r: 0, l: 1 }, F = evoFit(h.g, evoClimateOf(h));
     e.age++; e.fit = F.f;
     var nb = evoNear(h).filter(evoLive).length, life = 4 + 4 * F.f + L.l;
     var p = .03 + Math.max(0, 1.05 - F.f) * .38 + (nb >= 7 ? .22 : nb >= 6 ? .1 : 0) + (e.age > life ? .45 : 0) - (e.fed ? .1 : 0);
@@ -244,12 +272,12 @@ function evoGeneration() {
     var pr = clamp(.16 + .3 * e.fit + L.r + (e.fed ? .35 : 0), .05, .95);
     if (Math.random() > pr) return;
     var near = evoNear(h), room = near.filter(evoEmpty); if (!room.length) return;
-    var mates = near.filter(function (o) { return evoLive(o) && o.evo.age >= 1; }), mate = mates.length ? evoRand(mates) : null;
+    var mates = near.filter(function (o) { return evoLive(o) && o.evo.age >= 1 && evoCanMate(h, o); }), mate = mates.length ? evoRand(mates) : null;
     if (!mate && L.noClone) return;
     var dna, how, mut = null, mutP = (mate ? 0 : .28) + (e.mutagen ? .6 : 0);
     if ((EVO_LIFE[h.g.sp] || {}).mut) mutP = mutP * 3 + .1;
-    if (mate) { var res = crossDNA(h.dna.slice(0, 7), mate.dna.slice(0, 7)); dna = res.dna; how = res.mutated ? 'mutant' : 'cross'; }
-    else { dna = h.dna.slice(0, 7); how = 'clone'; }
+    if (mate) { var res = evoCross(h.dna, mate.dna); dna = res.dna; how = res.mutated ? 'mutant' : 'cross'; }
+    else { dna = h.g.natural ? h.dna.slice() : h.dna.slice(0, 7); how = 'clone'; }
     if (Math.random() < mutP) { mut = evoMutate(dna); how = 'mutant'; }
     var cell = evoRand(room);
     evoBirth(cell, dna, h, mate, how, 120 + Math.random() * 700 / Math.max(1, EVO.speed));
@@ -283,12 +311,18 @@ function evoCensus(news) {
     var L = EVO.lineage[k];
     if (!L) {
       var s = sample[k];
-      L = EVO.lineage[k] = { v: s.v, first: EVO.gen, peak: 0, n: 0, dna: s.h.dna.slice(), look: s.h.look, gone: false };
+      L = EVO.lineage[k] = { v: s.v, first: EVO.gen, peak: 0, n: 0, dna: s.h.dna.slice(), look: s.h.look, gone: false, parents: [] };
+      var bn = news.filter(function (b) { return evoName(composeGenes(b.dna)).key === k; })[0];
+      if (bn) { L.parents = [evoVariantOf(bn.mom).key].concat(bn.dad ? [evoVariantOf(bn.dad).key] : []); L.how = bn.how; }
+      else if (s.h.evo && s.h.evo.how === 'drop') L.how = 'drop';
       if (s.v.hybrid && logged < 2 && EVO.gen > 0) {
-        var bn = news.filter(function (b) { return evoName(composeGenes(b.dna)).key === k; })[0];
         if (bn) {
           var M = evoVariantOf(bn.mom), D = bn.dad ? evoVariantOf(bn.dad) : null;
-          if (bn.mut) {
+          if (bn.mut && bn.mut.natural) {
+            var nm = function (k2) { return typeof QX_PACKS !== 'undefined' ? QX_PACKS.short(k2) : k2; };
+            if (bn.mut.natural === 'gain') evoLog('一次突变：' + M.zh + '的孩子身上冒出了' + nm(bn.mut.to) + '的招牌——' + s.v.zh + '诞生了。', 'A mutation: a ' + M.en + '’s child sprouted the mark of ' + ((NATURAL_INFO[bn.mut.to] || {}).en || bn.mut.to) + ' — the first ' + s.v.en + '.', 'new');
+            else evoLog('一次突变：' + M.zh + '的孩子' + (bn.mut.natural === 'lost' ? '丢了' + nm(bn.mut.from) + '的血统' : '换了一身花色') + '。', 'A mutation: a ' + M.en + '’s child ' + (bn.mut.natural === 'lost' ? 'lost its borrowed mark.' : 'changed colour.'), 'new');
+          } else if (bn.mut) {
             var part = [['头', 'head'], ['耳朵', 'ears'], ['眼睛', 'eyes'], ['鼻子和嘴', 'nose and mouth'], ['毛发', 'hair'], ['花纹', 'markings'], ['打扮', 'outfit']][bn.mut.locus];
             evoLog('一次突变：' + M.zh + '的孩子' + part[0] + '长成了' + ((EVO_FULL[bn.mut.to] || [])[0] || (typeof LEGACY_LABELS !== 'undefined' && LEGACY_LABELS[bn.mut.to]) || bn.mut.to) + '的样子——' + s.v.zh + '诞生了。',
               'A mutation: a ' + M.en + '’s child grew the ' + part[1] + ' of a ' + (SPNAME[bn.mut.to] || bn.mut.to) + ' — the first ' + s.v.en + '.', 'new');
@@ -316,7 +350,7 @@ function evoCensus(news) {
   }
   if (!alive.length && EVO.gen > 0) evoLog('缸里空了。点空格，重新投放。', 'The tank is empty. Tap a cell to start again.', 'gone');
   [10, 30, 60, 100, 200].forEach(function (m) {
-    if (EVO.gen === m) { var nk = Object.keys(counts).length; evoLog('第 ' + m + ' 代。缸里有 ' + nk + ' 种生物、' + alive.length + ' 只。' + (nk >= 6 ? '热闹得很。' : nk <= 1 ? '只剩一家独大。' : ''), 'Generation ' + m + '. ' + nk + ' kinds, ' + alive.length + ' creatures.', 'mile'); }
+    if (EVO.gen === m) { var nk = Object.keys(counts).length; evoLog('第 ' + m + ' 代。缸里有 ' + nk + ' 种生物、' + alive.length + ' 只。' + (nk >= 6 ? '热闹得很。' : nk === 1 ? '只剩一家独大。' : nk === 0 ? '缸空了。' : ''), 'Generation ' + m + '. ' + nk + ' kinds, ' + alive.length + ' creatures.', 'mile'); }
   });
   EVO.hist.push({ gen: EVO.gen, c: counts, n: alive.length });
   if (EVO.hist.length > 80) EVO.hist.shift();
@@ -327,9 +361,9 @@ function evoCensus(news) {
 function evoDrop(h, sp) {
   if (!evoEmpty(h)) return;
   clearActs(h);
-  h.setDNA(pureDNA(evoFounderSeed(sp || EVO.pick)), null);
+  h.setDNA(evoFounderDNA(sp || EVO.pick), null);
   h.hidden = false; h.pop = 0; h.yaw = 0; h.pitch = 0; h.parents = null;
-  h.evo = { age: 1, born: EVO.gen, fit: evoFit(h.g, EVO.climate).f, how: 'drop', fed: 0 };
+  h.evo = { age: 1, born: EVO.gen, fit: evoFit(h.g, evoClimateOf(h)).f, how: 'drop', fed: 0 };
   cardBio(h.dna, evoBio('drop', h)); h._id = null;
   act(h, 'evoDrop');
   EVO.drops++;
@@ -396,7 +430,7 @@ Head.prototype.update = function (dt, now, look) {
   if (!EVO.on) return o;
   if (this.hidden && !this.evoDying) { this.pop = Math.max(0, this.pop - dt * 4); return o; }
   if (!this.evo || this.evoDying) return o;
-  var f = this.evo.fit, C = EVO.climate, tt = now / 1000 + this.col * .7;
+  var f = this.evo.fit, C = evoClimateOf(this), tt = now / 1000 + this.col * .7;
   if (f < .8) {
     var e = clamp((.8 - f) / .4, 0, 1) * (reduceMotion() ? .4 : 1);
     if (C === 'snow') { o.ox += Math.sin(now / 28) * .018 * e; o.brow = Math.max(o.brow || 0, .6 * e); o.smile = lerp(o.smile, -.5, e); }
@@ -601,13 +635,13 @@ function evoBuildPanel() {
   addChip('random', '随机', 'Random');
   EVO_FOUNDERS.forEach(function (F) { addChip(F[0], (EVO_FULL[F[0]] || [(typeof LEGACY_LABELS !== 'undefined' && LEGACY_LABELS[F[0]]) || F[0]])[0], cap(SPNAME[F[0]] || F[0])); });
   P.appendChild(tray); P.appendChild(blurb);
-  var climates = mk('气候', EVO_CLIMATE_ORDER.map(function (c, i) { var C = EVO_CLIMATES[c]; return [c, C.glyph + ' ' + evoL(C.zh, C.en), (i + 1) + '']; }), evoSetClimate);
+  var climates = mk('气候', EVO_CLIMATE_ORDER.map(function (c, i) { var C = EVO_CLIMATES[c]; return [c, C.glyph + ' ' + evoL(C.zh, C.en), (i + 1) + '']; }), function (c) { evoSetClimate(c); });
   var speeds = mk('', [[0, '❚❚ ' + uiText('暂停')], [1, '1×'], [3, '3×'], ['seed', uiText('随机开局')]], function (s) { if (s === 'seed') evoRandomStart(); else evoSetSpeed(s); });
   var chart = evoEl('canvas', 'evoChart'); P.appendChild(chart);
   var top = evoEl('ol', 'evoTop'); P.appendChild(top);
   P.appendChild(evoEl('span', 'evoLab', uiText('物种志'))).style.cssText = 'font-size:11px;opacity:.6';
   var log = evoEl('ul', 'evoLog'); log.setAttribute('aria-live', 'polite'); P.appendChild(log);
-  var exit = mk('', [['exit', '✕ ' + uiText('退出') + ' (Esc)']], evoExit);
+  var exit = mk('', [['exit', '✕ ' + uiText('退出') + ' (Esc)']], function () { evoExit(); });
   exit.exit.style.marginLeft = 'auto';
   document.body.appendChild(P);
   EVO.panel = { el: P, gen: gen, tools: tools, tray: trayBtns, blurb: blurb, climates: climates, speeds: speeds, chart: chart, top: top, log: log };
