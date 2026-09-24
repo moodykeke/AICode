@@ -5,7 +5,7 @@
    2) 键位登记 QX_KEYS：把基线 KEYMAP/KEYINFO 与各扩展自挂的监听（Tab、< > |、; '、暗房里的键）汇成一张表，
       audit() 查同一上下文的重复与缺中/英文名；window.__keys 调试出口。键位表、手机动作面板仍由 KBROWS 生成。
    3) 工具栏浮层化：顶栏与表演条收进一个浮在舞台上方的 #toolDeck——展开/收起不再改变舞台尺寸（以前 706→611px，
-      每张脸 73→64px 并整体下移）；有鼠标的设备上空闲 6 秒自动变淡，指针移到上方或按 Tab 复原。
+      每张脸 73→64px 并整体下移）；r48 起每次打开都是沉浸式（收起），展开后闲置 6 秒自动收起。
    4) 手机底部五键：演（动作面板）· 拍（大合照）· 角色（角色包）· 进化（生态缸）· 工具（r46 起，原为设置）；原底栏在手机上收起，
       舞台下沿让出底栏高度。 */
 
@@ -70,20 +70,25 @@ UI_PAIRS.push(['显示/收起工具栏', 'Show/hide the toolbar'], ['重拍', 'R
     '#toolDeck{position:absolute;left:0;right:0;top:0;z-index:30;display:flex;flex-direction:column;transition:opacity .4s ease}' +
     '#toolDeck #studioBar,#toolDeck #playBar{box-shadow:0 6px 18px rgba(56,47,36,.10)}' +
     '#toolDeck #studioBar{background:rgba(243,239,228,.9)!important}#toolDeck #playBar{background:rgba(232,238,229,.88)!important}' +
-    '#toolDeck.rest{opacity:.55}#toolDeck.rest:hover,#toolDeck.rest:focus-within{opacity:1}' +
+    
     '#sheet.immersive #toolDeck{pointer-events:none}';
   document.head.appendChild(st);
-  /* 有鼠标的设备：空闲 6 秒变淡；指针到上方 64px 或按键时复原 */
-  var hover = false; try { hover = window.matchMedia('(hover:hover) and (pointer:fine)').matches; } catch (e) {}
-  if (!hover) return;
+  /* r48 沉浸式：每次打开都从"收起"开始（不沿用上次展开的状态）；展开后闲置 6 秒自动收起，
+     指针停在工具栏上、焦点在里面、下拉菜单或设置/帮助开着时不收。 */
+  try { if (typeof setImmersive === 'function') setImmersive(true, false); } catch (e) {}
   var t = 0;
-  var wake = function () { deck.classList.remove('rest'); clearTimeout(t); t = setTimeout(function () {
-    if (deck.matches(':hover') || deck.contains(document.activeElement) || document.querySelector('.playMoreMenu:not([hidden]) :hover')) { wake(); return; }
-    deck.classList.add('rest'); }, 6000); };
-  window.addEventListener('pointermove', function (e) { if (e.clientY < 64 || deck.contains(e.target)) wake(); }, { passive: true });
-  window.addEventListener('keydown', function (e) { if (e.key === 'Tab') wake(); });
-  deck.addEventListener('focusin', wake);
-  wake();
+  var busy = function () {
+    return deck.matches(':hover') || deck.contains(document.activeElement) || !!deck.querySelector('details[open]') ||
+      (typeof helpOpen !== 'undefined' && helpOpen) || (typeof panelOpen !== 'undefined' && panelOpen);
+  };
+  var arm = function () { clearTimeout(t); t = setTimeout(function () {
+    if (typeof immersiveState !== 'function' || immersiveState()) return;
+    if (busy()) { arm(); return; }
+    setImmersive(true, false);
+  }, 6000); };
+  ['pointermove', 'pointerdown', 'focusin', 'keydown'].forEach(function (ev) { deck.addEventListener(ev, arm, { passive: true }); });
+  var baseSetImm = setImmersive;
+  setImmersive = function (on) { var r = baseSetImm.apply(this, arguments); if (!on) arm(); else clearTimeout(t); return r; };
 })();
 
 /* ========== 4) 手机底部五键 ========== */

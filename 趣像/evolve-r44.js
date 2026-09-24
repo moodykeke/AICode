@@ -493,7 +493,7 @@ function evoDrawWorld(now) {
     ctx.beginPath(); ctx.ellipse(f.x, f.y - (1 - age) * 10, 3.2, 2.2, f.r, 0, TAU); ctx.fill();
     ctx.globalAlpha = age * .35; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(f.x - 1, f.y - 1 - (1 - age) * 10, .9, 0, TAU); ctx.fill();
   });
-  if (EVO.tool === 'drop') {
+  if (EVO.tool === 'drop' && !EVO.artMarks) {
     var pulse = heads.some(evoLive) ? .16 : .28 + .14 * Math.sin(now / 300);
     ctx.globalAlpha = pulse; ctx.strokeStyle = INK || '#3a342c'; ctx.lineWidth = 1.2; ctx.setLineDash([3, 4]);
     heads.forEach(function (h) { if (!evoEmpty(h) || h.pop > .05) return; var r = h.s * .55; ctx.beginPath(); ctx.arc(h.x, h.y, r, 0, TAU); ctx.stroke(); ctx.beginPath(); ctx.moveTo(h.x - r * .35, h.y); ctx.lineTo(h.x + r * .35, h.y); ctx.moveTo(h.x, h.y - r * .35); ctx.lineTo(h.x, h.y + r * .35); ctx.stroke(); });
