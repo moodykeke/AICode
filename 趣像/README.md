@@ -34,6 +34,8 @@ node build.cjs --verify     # 只做补丁契约检查：命中/失配清单（�
 | `gestures-r46.js` | r46 触屏手势收敛（轻触 / 长按 / 单指划 / 双指） |
 | `power-a11y-r46.js` | r46 省电模式、无障碍（舞台说明、aria-live、键盘焦点） |
 | `evolve-more-r46.js` | r46 生态缸第三期：时间倒带、食物链与共生、进化延时、海报送展墙 |
+| `head-cache-r47.js` | r47 经典半身像逐头帧缓存（闲着的头隔帧重画） |
+| `evolve-voice-r47.js` | r47 生态缸台词与气候声景 |
 
 ## 两条约定
 
@@ -44,7 +46,7 @@ node build.cjs --verify     # 只做补丁契约检查：命中/失配清单（�
 ## 相关文档
 
 - 每批的验收与设计：`docs/fun/quxiang-rNN/`（含 `开发与验证/` 源码快照、版本记录、验证说明）
-- 本仓库：`docs/quxiang-r42/`（r42 归档文档）、`docs/quxiang-r43/`（r43 设计、性能、界面方案、样张）、`docs/quxiang-r44/`（生态缸、角色包与分享互动设计）、`docs/quxiang-r45/`（生态缸第二期、界面 P1 与角色包）、`docs/quxiang-r46/`（界面 P2/P3、生态缸第三期）
+- 本仓库：`docs/quxiang-r42/`（r42 归档文档）、`docs/quxiang-r43/`（r43 设计、性能、界面方案、样张）、`docs/quxiang-r44/`（生态缸、角色包与分享互动设计）、`docs/quxiang-r45/`（生态缸第二期、界面 P1 与角色包）、`docs/quxiang-r46/`（界面 P2/P3、生态缸第三期）、`docs/quxiang-r47/`（首屏提速、台词与声景）
 - 高观点审查与增强方案：`docs/fun/趣像-高观点审查与增强方案-20260923.md`
 - 头像管线：`bin/process-student-avatars.py`、情绪件：`bin/generate-avatar-emotions.py`
 - 回归套件：`bin/quxiang-regress.mjs`
