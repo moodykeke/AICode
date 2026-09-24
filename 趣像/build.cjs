@@ -173,7 +173,7 @@ const toolbarPolish=`
   @keyframes qxPulse{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
 `;
 var toolbarStyleEnd=html.lastIndexOf('</style>');html=html.slice(0,toolbarStyleEnd)+toolbarPolish+html.slice(toolbarStyleEnd);
-const extension = ['studio.js','atlas.js','folklore.js','portrait-evolution.js','new-faces.js','myth-faces.js','portrait-sprite.js','ensemble.js','curation.js','locale-lookbook.js','touch-feel.js','neck-mode.js','scale-play.js','dock-moves.js','wall-submit.js','gaze-life.js','audio-bank.js','panel-design.js','move-sound.js','memory-tame.js','gaze-hop-fix.js','group-photo.js','photo-lab.js','class-faces.js','pointer-turn.js','mobile-fit.js','mem-tag.js','bigscreen.js','i18n-fill.js','ux-r43.js','fun-r43.js','card-words-r44.js','packs-r45.js','ui-r45.js','evolve-r44.js','evolve-plus-r45.js'].map(f=>fs.readFileSync(path.join(__dirname,f),'utf8')).join('\n');
+const extension = ['studio.js','atlas.js','folklore.js','portrait-evolution.js','new-faces.js','myth-faces.js','portrait-sprite.js','ensemble.js','curation.js','locale-lookbook.js','touch-feel.js','neck-mode.js','scale-play.js','dock-moves.js','wall-submit.js','gaze-life.js','audio-bank.js','panel-design.js','move-sound.js','memory-tame.js','gaze-hop-fix.js','group-photo.js','photo-lab.js','class-faces.js','pointer-turn.js','mobile-fit.js','mem-tag.js','bigscreen.js','i18n-fill.js','ux-r43.js','fun-r43.js','card-words-r44.js','packs-r45.js','ui-r45.js','evolve-r44.js','evolve-plus-r45.js','gestures-r46.js','power-a11y-r46.js','evolve-more-r46.js'].map(f=>fs.readFileSync(path.join(__dirname,f),'utf8')).join('\n');
 // 资产版本：取自拾趣馆卡片 v —— 同一个旋钮同时管卡片、基线与情绪件 URL 的 ?v=
 let ASSET_V = 1;
 try {
@@ -194,6 +194,20 @@ fs.writeFileSync(path.join(OUT, 'favicon.svg'), fs.readFileSync(path.join(__dirn
 const js=html.match(/<script>([\s\S]*?)<\/script>/)[1];
 fs.writeFileSync(path.join(__dirname,'app-check.js'),js);
 if (VERIFY) {
+  /* r46 词条审计：uiText('中文') 用到的每个中文字面量都必须登记过中英对（否则英文界面仍是中文） */
+  const PAIR = /\[\s*'((?:[^'\\\n]|\\.)*)'\s*,\s*'((?:[^'\\\n]|\\.)*)'\s*\]/g, CJK = /[\u4e00-\u9fff]/;
+  const known = new Set();
+  let m; while ((m = PAIR.exec(js))) { if (CJK.test(m[1])) known.add(m[1]); if (CJK.test(m[2])) known.add(m[2]); }
+  const USE = /uiText\(\s*'((?:[^'\\\n]|\\.)*)'\s*\)/g, missingI18n = new Set();
+  while ((m = USE.exec(js))) { if (CJK.test(m[1]) && !known.has(m[1])) missingI18n.add(m[1]); }
+  /* 键位审计：扩展里 KEYMAP['k'] = 'fx' 的直接赋值，同一个键被赋成两个不同动作即冲突 */
+  const KA = /KEYMAP\[\s*'((?:[^'\\]|\\.)*)'\s*\]\s*=\s*'([^']*)'/g, keyTo = {}, keyClash = [];
+  while ((m = KA.exec(js))) { if (keyTo[m[1]] && keyTo[m[1]] !== m[2]) keyClash.push(m[1] + ': ' + keyTo[m[1]] + ' / ' + m[2]); keyTo[m[1]] = m[2]; }
+  console.log('词条审计：uiText 中文字面量未登记 ' + missingI18n.size + ' 条');
+  missingI18n.forEach(t => console.log('  [未登记] ' + t));
+  console.log('键位审计：KEYMAP 直接赋值冲突 ' + keyClash.length + ' 条');
+  keyClash.forEach(t => console.log('  [冲突] ' + t));
+  if (missingI18n.size || keyClash.length) MISSING.push('i18n/key audit');
   console.log('补丁契约检查：命中 ' + APPLIED + ' 条，失配 ' + MISSING.length + ' 条');
   MISSING.forEach(m => console.log('  [失配] ' + m.replace(/\n/g, '\\n')));
   process.exit(MISSING.length ? 1 : 0);

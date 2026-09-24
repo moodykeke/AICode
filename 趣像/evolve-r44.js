@@ -261,7 +261,7 @@ function evoGeneration() {
     var e = h.evo, L = EVO_LIFE[h.g.sp] || { r: 0, l: 1 }, F = evoFit(h.g, evoClimateOf(h));
     e.age++; e.fit = F.f;
     var nb = evoNear(h).filter(evoLive).length, life = 4 + 4 * F.f + L.l;
-    var p = .03 + Math.max(0, 1.05 - F.f) * .38 + (nb >= 7 ? .22 : nb >= 6 ? .1 : 0) + (e.age > life ? .45 : 0) - (e.fed ? .1 : 0);
+    var p = .03 + Math.max(0, 1.05 - F.f) * .38 + (nb >= 7 ? .22 : nb >= 6 ? .1 : 0) + (e.age > life ? .45 : 0) - (e.fed ? .1 : 0) - (e.buddy ? .05 : 0);
     if (Math.random() < p) evoKill(h, e.age > life ? 'old' : 'unfit');
   });
   /* 生：挨着的配对，孤单的克隆 */
@@ -269,7 +269,7 @@ function evoGeneration() {
   alive.filter(evoLive).sort(function () { return Math.random() - .5; }).forEach(function (h) {
     var e = h.evo; if (e.age < 1) return;
     var L = EVO_LIFE[h.g.sp] || { r: 0 };
-    var pr = clamp(.16 + .3 * e.fit + L.r + (e.fed ? .35 : 0), .05, .95);
+    var pr = clamp(.16 + .3 * e.fit + L.r + (e.fed ? .35 : 0) + (e.buddy ? .2 : 0), .05, .95);
     if (Math.random() > pr) return;
     var near = evoNear(h), room = near.filter(evoEmpty); if (!room.length) return;
     var mates = near.filter(function (o) { return evoLive(o) && o.evo.age >= 1 && evoCanMate(h, o); }), mate = mates.length ? evoRand(mates) : null;

@@ -18,15 +18,22 @@ if(SHARE_KEYS.indexOf('mono')<0) SHARE_KEYS.push('mono');
 // 明确选过网格的人（gridChoice）保持不动。
 // r43：竖屏手机（窄边 <520px）默认 4×6（24 位）——7×5 在 390 宽上每张脸只有 ~45px，点不准也更费电。
 // 只影响"从没选过网格"的访客；明确选过的（gridChoice）不动。
-var STAGE_PHONE = (function(){ try { return Math.min(window.innerWidth, window.innerHeight) < 520 && window.innerHeight >= window.innerWidth; } catch (e) { return false; } })();
-var STAGE_DEFAULT = STAGE_PHONE ? { cols: 4, rows: 6 } : { cols: 7, rows: 5 };
+// r46：按设备分档——竖屏手机 4×6、横屏手机 6×3、竖放平板 5×6、横放平板与桌面 7×5（同样只影响没选过网格的访客）。
+var STAGE_KIND = (function(){ try {
+  var w = window.innerWidth, h = window.innerHeight, m = Math.min(w, h), coarse = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
+  if (m < 520) return h >= w ? 'phone' : 'phoneLand';
+  if (coarse && m < 1100 && h > w) return 'tablet';
+  return 'desktop';
+} catch (e) { return 'desktop'; } })();
+var STAGE_PHONE = STAGE_KIND === 'phone';
+var STAGE_DEFAULT = ({ phone: { cols: 4, rows: 6 }, phoneLand: { cols: 6, rows: 3 }, tablet: { cols: 5, rows: 6 } })[STAGE_KIND] || { cols: 7, rows: 5 };
 function ensureStageDefault(){
   try{
     var migrated=localStorage.getItem('quxiang.grid7x5'),choice=localStorage.getItem('quxiang.gridChoice');
     var pool=Array.isArray(CFG.speciesPool)?CFG.speciesPool:[];
     var oldAuto=(!choice && !pool.length && (Number(CFG.cols)!==STAGE_DEFAULT.cols || Number(CFG.rows)!==STAGE_DEFAULT.rows));
     if(!migrated && oldAuto){CFG.cols=STAGE_DEFAULT.cols;CFG.rows=STAGE_DEFAULT.rows;CFG.composition='grid';saveCfg();localStorage.setItem('quxiang.grid7x5','1');}
-    if(STAGE_PHONE && !choice && !localStorage.getItem('quxiang.gridPhone') && Number(CFG.cols)===7 && Number(CFG.rows)===5){CFG.cols=STAGE_DEFAULT.cols;CFG.rows=STAGE_DEFAULT.rows;CFG.composition='grid';saveCfg();localStorage.setItem('quxiang.gridPhone','1');}
+    if(STAGE_KIND!=='desktop' && !choice && !localStorage.getItem(STAGE_PHONE?'quxiang.gridPhone':'quxiang.grid.'+STAGE_KIND) && Number(CFG.cols)===7 && Number(CFG.rows)===5){CFG.cols=STAGE_DEFAULT.cols;CFG.rows=STAGE_DEFAULT.rows;CFG.composition='grid';saveCfg();localStorage.setItem(STAGE_PHONE?'quxiang.gridPhone':'quxiang.grid.'+STAGE_KIND,'1');}
   }catch(e){}
   return Number(CFG.cols)===STAGE_DEFAULT.cols && Number(CFG.rows)===STAGE_DEFAULT.rows && CFG.composition==='grid';
 }

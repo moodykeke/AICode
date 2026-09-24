@@ -287,8 +287,9 @@ drawGrid = function (dt, now) {
     var en = (typeof UI_LANG !== 'undefined' && UI_LANG === 'en');
     // r43：触屏没有"悬停凝视"，换成触屏真正做得到的：长按开卡
     var touch = window.matchMedia && matchMedia('(pointer: coarse)').matches;
-    toast(touch ? (en ? 'Touch them: tap to greet · sweep for a wave · drag slowly for ripples · press and hold for a card.'
-                      : '可以摸：轻触打招呼 · 快划成浪 · 慢划起涟漪 · 长按看卡片')
+    // r46：触屏手势收敛为四种（见 gestures-r46.js）
+    toast(touch ? (en ? 'Touch them: tap to greet · press and hold for a card · swipe for a wave · two fingers to turn a head.'
+                      : '可以摸：轻触打招呼 · 长按看卡片 · 划一下起浪 · 两指转头')
                 : (en ? 'It is tactile now: tap to greet · sweep to make a wave · tap the paper for ripples · hold to slow down · stare and someone notices.'
                       : '现在可以摸：轻触打招呼 · 快划成浪 · 慢划起涟漪 · 按住慢下来 · 盯着谁，谁会注意到你'), touch ? 5200 : 6800);
   }, 2600);

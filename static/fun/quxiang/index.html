@@ -5703,15 +5703,22 @@ if(SHARE_KEYS.indexOf('mono')<0) SHARE_KEYS.push('mono');
 // 明确选过网格的人（gridChoice）保持不动。
 // r43：竖屏手机（窄边 <520px）默认 4×6（24 位）——7×5 在 390 宽上每张脸只有 ~45px，点不准也更费电。
 // 只影响"从没选过网格"的访客；明确选过的（gridChoice）不动。
-var STAGE_PHONE = (function(){ try { return Math.min(window.innerWidth, window.innerHeight) < 520 && window.innerHeight >= window.innerWidth; } catch (e) { return false; } })();
-var STAGE_DEFAULT = STAGE_PHONE ? { cols: 4, rows: 6 } : { cols: 7, rows: 5 };
+// r46：按设备分档——竖屏手机 4×6、横屏手机 6×3、竖放平板 5×6、横放平板与桌面 7×5（同样只影响没选过网格的访客）。
+var STAGE_KIND = (function(){ try {
+  var w = window.innerWidth, h = window.innerHeight, m = Math.min(w, h), coarse = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
+  if (m < 520) return h >= w ? 'phone' : 'phoneLand';
+  if (coarse && m < 1100 && h > w) return 'tablet';
+  return 'desktop';
+} catch (e) { return 'desktop'; } })();
+var STAGE_PHONE = STAGE_KIND === 'phone';
+var STAGE_DEFAULT = ({ phone: { cols: 4, rows: 6 }, phoneLand: { cols: 6, rows: 3 }, tablet: { cols: 5, rows: 6 } })[STAGE_KIND] || { cols: 7, rows: 5 };
 function ensureStageDefault(){
   try{
     var migrated=localStorage.getItem('quxiang.grid7x5'),choice=localStorage.getItem('quxiang.gridChoice');
     var pool=Array.isArray(CFG.speciesPool)?CFG.speciesPool:[];
     var oldAuto=(!choice && !pool.length && (Number(CFG.cols)!==STAGE_DEFAULT.cols || Number(CFG.rows)!==STAGE_DEFAULT.rows));
     if(!migrated && oldAuto){CFG.cols=STAGE_DEFAULT.cols;CFG.rows=STAGE_DEFAULT.rows;CFG.composition='grid';saveCfg();localStorage.setItem('quxiang.grid7x5','1');}
-    if(STAGE_PHONE && !choice && !localStorage.getItem('quxiang.gridPhone') && Number(CFG.cols)===7 && Number(CFG.rows)===5){CFG.cols=STAGE_DEFAULT.cols;CFG.rows=STAGE_DEFAULT.rows;CFG.composition='grid';saveCfg();localStorage.setItem('quxiang.gridPhone','1');}
+    if(STAGE_KIND!=='desktop' && !choice && !localStorage.getItem(STAGE_PHONE?'quxiang.gridPhone':'quxiang.grid.'+STAGE_KIND) && Number(CFG.cols)===7 && Number(CFG.rows)===5){CFG.cols=STAGE_DEFAULT.cols;CFG.rows=STAGE_DEFAULT.rows;CFG.composition='grid';saveCfg();localStorage.setItem(STAGE_PHONE?'quxiang.gridPhone':'quxiang.grid.'+STAGE_KIND,'1');}
   }catch(e){}
   return Number(CFG.cols)===STAGE_DEFAULT.cols && Number(CFG.rows)===STAGE_DEFAULT.rows && CFG.composition==='grid';
 }
@@ -8586,8 +8593,9 @@ drawGrid = function (dt, now) {
     var en = (typeof UI_LANG !== 'undefined' && UI_LANG === 'en');
     // r43：触屏没有"悬停凝视"，换成触屏真正做得到的：长按开卡
     var touch = window.matchMedia && matchMedia('(pointer: coarse)').matches;
-    toast(touch ? (en ? 'Touch them: tap to greet · sweep for a wave · drag slowly for ripples · press and hold for a card.'
-                      : '可以摸：轻触打招呼 · 快划成浪 · 慢划起涟漪 · 长按看卡片')
+    // r46：触屏手势收敛为四种（见 gestures-r46.js）
+    toast(touch ? (en ? 'Touch them: tap to greet · press and hold for a card · swipe for a wave · two fingers to turn a head.'
+                      : '可以摸：轻触打招呼 · 长按看卡片 · 划一下起浪 · 两指转头')
                 : (en ? 'It is tactile now: tap to greet · sweep to make a wave · tap the paper for ripples · hold to slow down · stare and someone notices.'
                       : '现在可以摸：轻触打招呼 · 快划成浪 · 慢划起涟漪 · 按住慢下来 · 盯着谁，谁会注意到你'), touch ? 5200 : 6800);
   }, 2600);
@@ -12963,7 +12971,7 @@ try { window.__packs = { get list() { return QX_PACKS.list.map(function (p) { re
       audit() 查同一上下文的重复与缺中/英文名；window.__keys 调试出口。键位表、手机动作面板仍由 KBROWS 生成。
    3) 工具栏浮层化：顶栏与表演条收进一个浮在舞台上方的 #toolDeck——展开/收起不再改变舞台尺寸（以前 706→611px，
       每张脸 73→64px 并整体下移）；有鼠标的设备上空闲 6 秒自动变淡，指针移到上方或按 Tab 复原。
-   4) 手机底部五键：演（动作面板）· 拍（大合照）· 角色（角色包）· 进化（生态缸）· 设置；原底栏在手机上收起，
+   4) 手机底部五键：演（动作面板）· 拍（大合照）· 角色（角色包）· 进化（生态缸）· 工具（r46 起，原为设置）；原底栏在手机上收起，
       舞台下沿让出底栏高度。 */
 
 /* ========== 1) 上下文层 ========== */
@@ -13051,7 +13059,8 @@ UI_PAIRS.push(['显示/收起工具栏', 'Show/hide the toolbar'], ['重拍', 'R
     ['snap', '◉', '拍', 'Photo', function () { fire('snapshot'); }],
     ['packs', '▦', '角色', 'Cast', function () { if (typeof packsOpen === 'function') packsOpen(); }],
     ['evo', '❦', '进化', 'Evolve', function () { fire('evolve'); }],
-    ['set', '⚙', '设置', 'Settings', function () { if (typeof togglePanel === 'function') togglePanel(); }]
+    /* r46：原底栏收起后，工具栏把手也跟着看不见了——第五键改为"工具"（场景、语言、画材与设置、保存都在工具栏里） */
+    ['tools', '☰', '工具', 'Tools', function () { if (typeof setImmersive === 'function') setImmersive(!immersiveState()); }]
   ];
   items.forEach(function (it) {
     var b = document.createElement('button'); b.type = 'button'; b.dataset.k = it[0];
@@ -13059,7 +13068,7 @@ UI_PAIRS.push(['显示/收起工具栏', 'Show/hide the toolbar'], ['重拍', 'R
     b.addEventListener('click', function () { try { it[4](); } catch (e) {} });
     dock.appendChild(b);
   });
-  UI_PAIRS.push(['快捷操作', 'Quick actions'], ['演', 'Act'], ['拍', 'Photo'], ['角色', 'Cast'], ['进化', 'Evolve'], ['设置', 'Settings']);
+  UI_PAIRS.push(['快捷操作', 'Quick actions'], ['演', 'Act'], ['拍', 'Photo'], ['角色', 'Cast'], ['进化', 'Evolve'], ['设置', 'Settings'], ['工具', 'Tools']);
   var st = document.createElement('style');
   st.textContent =
     '#qxDock{display:none}' +
@@ -13071,10 +13080,19 @@ UI_PAIRS.push(['显示/收起工具栏', 'Show/hide the toolbar'], ['重拍', 'R
     '  #sheet{padding-bottom:calc(58px + env(safe-area-inset-bottom,0px))}#caption{display:none!important}' +
     '  body.evo-on #qxDock{display:none}body.evo-on #sheet{padding-bottom:0}' +
     '}' +
+    /* r46：横屏手机——底栏太占高度，改成右侧一条竖栏 */
+    '@media(max-height:500px) and (orientation:landscape) and (pointer:coarse){' +
+    '  #qxDock{display:flex;flex-direction:column;position:fixed;top:0;bottom:0;right:0;z-index:48;width:calc(62px + env(safe-area-inset-right,0px));padding:6px env(safe-area-inset-right,0px) 6px 4px;' +
+    '    background:rgba(246,242,233,.96);border-left:1px solid #d9cfbc;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}' +
+    '  #qxDock button{flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;border:0;background:none;color:#3f4c43;font:11px/1.2 system-ui,"PingFang SC",sans-serif;min-height:44px;border-radius:10px}' +
+    '  #qxDock i{font-style:normal;font-size:17px;line-height:1}' +
+    '  #sheet{padding-right:calc(62px + env(safe-area-inset-right,0px))}#caption{display:none!important}' +
+    '  body.evo-on #qxDock{display:none}body.evo-on #sheet{padding-right:0}' +
+    '}' +
     '@media(max-width:640px) and (prefers-color-scheme:dark){#qxDock{background:rgba(40,36,31,.96);border-color:#5a5044}#qxDock button{color:#efe7d8}}';
   document.head.appendChild(st);
   document.body.appendChild(dock);
-  var mq = null; try { mq = window.matchMedia('(max-width:640px)'); } catch (e) {}
+  var mq = null; try { mq = window.matchMedia('(max-width:640px), (max-height:500px) and (orientation:landscape) and (pointer:coarse)'); } catch (e) {}
   if (mq) { var relayout = function () { requestAnimationFrame(function () { layout(); }); }; if (mq.addEventListener) mq.addEventListener('change', relayout); if (mq.matches) relayout(); }
   /* 进出生态缸时舞台下沿变了，重排一次 */
   var evoWas = document.body.classList.contains('evo-on');
@@ -13347,7 +13365,7 @@ function evoGeneration() {
     var e = h.evo, L = EVO_LIFE[h.g.sp] || { r: 0, l: 1 }, F = evoFit(h.g, evoClimateOf(h));
     e.age++; e.fit = F.f;
     var nb = evoNear(h).filter(evoLive).length, life = 4 + 4 * F.f + L.l;
-    var p = .03 + Math.max(0, 1.05 - F.f) * .38 + (nb >= 7 ? .22 : nb >= 6 ? .1 : 0) + (e.age > life ? .45 : 0) - (e.fed ? .1 : 0);
+    var p = .03 + Math.max(0, 1.05 - F.f) * .38 + (nb >= 7 ? .22 : nb >= 6 ? .1 : 0) + (e.age > life ? .45 : 0) - (e.fed ? .1 : 0) - (e.buddy ? .05 : 0);
     if (Math.random() < p) evoKill(h, e.age > life ? 'old' : 'unfit');
   });
   /* 生：挨着的配对，孤单的克隆 */
@@ -13355,7 +13373,7 @@ function evoGeneration() {
   alive.filter(evoLive).sort(function () { return Math.random() - .5; }).forEach(function (h) {
     var e = h.evo; if (e.age < 1) return;
     var L = EVO_LIFE[h.g.sp] || { r: 0 };
-    var pr = clamp(.16 + .3 * e.fit + L.r + (e.fed ? .35 : 0), .05, .95);
+    var pr = clamp(.16 + .3 * e.fit + L.r + (e.fed ? .35 : 0) + (e.buddy ? .2 : 0), .05, .95);
     if (Math.random() > pr) return;
     var near = evoNear(h), room = near.filter(evoEmpty); if (!room.length) return;
     var mates = near.filter(function (o) { return evoLive(o) && o.evo.age >= 1 && evoCanMate(h, o); }), mate = mates.length ? evoRand(mates) : null;
@@ -14312,8 +14330,12 @@ function evoChartOn(x, w, h) {
   });
 }
 function evoPoster() {
+  var c = evoPosterCanvas(); if (!c) return;
+  evoPosterSave(c);
+}
+function evoPosterCanvas() {
   var alive = heads.filter(evoLive);
-  if (!alive.length && !EVO.hist.length) { toast(evoL('缸是空的。', 'The tank is empty.'), 1600); return; }
+  if (!alive.length && !EVO.hist.length) { toast(evoL('缸是空的。', 'The tank is empty.'), 1600); return null; }
   var PW = 1080, PH = 1560, c = document.createElement('canvas'); c.width = PW; c.height = PH;
   var x = c.getContext('2d'), serif = '"Noto Serif SC","Songti SC","STSong",serif', sans = 'system-ui,"PingFang SC","Noto Sans SC",sans-serif';
   x.fillStyle = '#f5efe3'; x.fillRect(0, 0, PW, PH);
@@ -14360,13 +14382,16 @@ function evoPoster() {
     lines.slice(0, 2).forEach(function (l, i) { x.fillText(l, 170, y + i * 34); }); y += (Math.min(2, lines.length) - 1) * 34;
   });
   x.textAlign = 'center'; x.font = '400 22px ' + sans; x.fillStyle = '#8a7c6a'; x.fillText(evoL('趣像 · 生态缸 —— 投放、繁衍、突变、看谁活下来', 'Qu Xiang · evolution tank — drop, breed, mutate, see who survives'), PW / 2, PH - 70);
+  EVO.lastPoster = c;
+  return c;
+}
+function evoPosterSave(c) {
   c.toBlob(function (b) {
     if (!b) { toast(evoL('海报生成失败。', 'Poster failed.'), 2000); return; }
     var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'quxiang-tank-gen' + EVO.gen + '.png'; document.body.appendChild(a); a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
     toast(evoL('进化史海报已保存。', 'Evolution poster saved.'), 2200);
   }, 'image/png');
-  EVO.lastPoster = c;
 }
 
 /* ========== 九、面板：新增几排 ========== */
@@ -14462,6 +14487,418 @@ TRIG.evolve = function () { if (EVO.on) evoExit(); else evoEnter(); };
 try {
   Object.assign(window.__evo, { disaster: evoDisaster, split: evoSetClimate2, code: evoExportCode, load: evoImportCode, tree: evoTreeOpen, dex: evoDexOpen, challenges: evoChallengesOpen, challenge: evoStartChallenge, poster: evoPoster, pack: function (id) { EVO.pack = id; evoFillTray(); evoSyncPanel(); }, pick: function (k) { EVO.pick = k; } });
 } catch (e) {}
+
+/* 趣像 23 (r46): 触屏手势收敛（《界面与键位-高观点改造方案-r43》P2）
+   ─────────────────────────────────────────────────────────────
+   以前同一根手指有六种含义：轻触＝招呼、快划＝浪、慢划＝涟漪、按住＝慢放、再久＝开卡、拖动＝转头。
+   在手机上"拖动转头"和"快划成浪"抢同一个动作——按在脸上划，永远只转头、起不了浪；"按住慢放"又和"长按开卡"叠在一起。
+   现在触屏只有四种，每种一个意思：
+     轻触        打招呼（点头、眨眼，顺手转一圈）
+     长按        开卡片
+     单指划      起浪（按在脸上划也一样：一动超过 12px 就放下这张脸，交给"风过麦田"）
+     双指        转头（两指左右挪＝转、上下挪＝点头；落在谁身上转谁）
+   "按住慢放"在触屏上取消（鼠标仍保留）；慢划涟漪在触屏上本来就不触发。只处理 pointerType === 'touch'，鼠标与笔不变。 */
+
+var GEST = { pts: {}, n: 0, two: null };
+function gestLocal(e) { var r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+window.addEventListener('pointerdown', function (e) {
+  if (e.pointerType !== 'touch' || e.target !== cv) return;
+  var p = gestLocal(e);
+  GEST.pts[e.pointerId] = { x: p.x, y: p.y, x0: p.x, y0: p.y };
+  GEST.n = Object.keys(GEST.pts).length;
+  if (GEST.n === 2 && !SUPER && !BRUSH && !cardOpen && !(typeof EVO !== 'undefined' && EVO.on)) {
+    /* 第二根手指落下：进入双指转头；把第一根手指可能开始的"按住开卡/拖动"取消掉 */
+    var ids = Object.keys(GEST.pts), a = GEST.pts[ids[0]], b = GEST.pts[ids[1]];
+    var mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, h = headAt(a.x, a.y) || headAt(mx, my);
+    clearTimeout(pressTimer);
+    if (drag) { drag.head.dragging = false; drag = null; }
+    if (h) { h.dragging = true; h.spinning = false; userTakeover(h); }
+    GEST.two = { h: h, mx: mx, my: my };
+    e.stopImmediatePropagation();
+  }
+}, true);
+window.addEventListener('pointermove', function (e) {
+  if (e.pointerType !== 'touch') return;
+  var P = GEST.pts[e.pointerId]; if (!P) return;
+  var p = gestLocal(e); P.x = p.x; P.y = p.y;
+  if (GEST.two) {
+    var ids = Object.keys(GEST.pts); if (ids.length < 2) return;
+    var a = GEST.pts[ids[0]], b = GEST.pts[ids[1]], mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, T = GEST.two;
+    if (T.h) { T.h.yaw += (mx - T.mx) * .016; T.h.pitch = clamp(T.h.pitch + (my - T.my) * .007, -.45, .5); }
+    T.mx = mx; T.my = my;
+    e.stopImmediatePropagation();
+    return;
+  }
+  /* 单指：按在脸上一划超过 12px，就放下这张脸，让它成为一阵风 */
+  if (drag && Math.hypot(p.x - P.x0, p.y - P.y0) > 12 && !breedFrom) {
+    clearTimeout(pressTimer);
+    drag.head.dragging = false; drag = null;
+  }
+  /* 手机屏小，手指划得没鼠标快：300–620px/s 这一段由这里补上"风过麦田"（更快的交给 touch-feel） */
+  var now = performance.now(), dt = Math.max(.008, (now - (P.t || now - 16)) / 1000), vx = (p.x - (P.px == null ? P.x0 : P.px)) / dt, vy = (p.y - (P.py == null ? P.y0 : P.py)) / dt, sp = Math.hypot(vx, vy);
+  P.px = p.x; P.py = p.y; P.t = now;
+  if (!drag && sp > 300 && sp <= 620 && !SUPER && !BRUSH && !cardOpen && !(typeof EVO !== 'undefined' && EVO.on) && typeof feelImpulse === 'function' && !(typeof feelReduce === 'function' && feelReduce())) {
+    var reach = 130, power = Math.min(1, sp / 900);
+    for (var i = 0; i < heads.length; i++) {
+      var h = heads[i], dx = h.x - p.x, dy = (h.y - h.s * .2) - p.y, d = Math.hypot(dx, dy); if (d > reach) continue;
+      var fall = Math.pow(1 - d / reach, 1.6);
+      feelImpulse(h, vx / 700 * power * fall, vy / 1100 * power * fall * .5, dx / 700 * power * fall);
+    }
+    FEEL.trail.push({ x: p.x, y: p.y, t: now }); if (FEEL.trail.length > 14) FEEL.trail.shift();
+  }
+}, true);
+function gestUp(e) {
+  if (e.pointerType !== 'touch') return;
+  delete GEST.pts[e.pointerId];
+  GEST.n = Object.keys(GEST.pts).length;
+  if (GEST.two) {
+    if (GEST.n === 0) { if (GEST.two.h) GEST.two.h.dragging = false; GEST.two = null; }
+    e.stopImmediatePropagation();
+  }
+}
+window.addEventListener('pointerup', gestUp, true);
+window.addEventListener('pointercancel', gestUp, true);
+/* 触屏上"按住慢放"取消：touch-feel 的按住监听先跑，这里随后把它复位 */
+cv.addEventListener('pointerdown', function (e) {
+  if (e.pointerType === 'touch' && typeof FEEL !== 'undefined') { FEEL.hold = null; FEEL.slowTarget = 1; }
+}, { passive: true });
+try { cv.style.touchAction = 'none'; } catch (e) {}
+try { window.__gest = { get state() { return { touches: GEST.n, two: !!GEST.two, head: GEST.two && GEST.two.h ? GEST.two.h.col + ',' + GEST.two.h.row : null }; } }; } catch (e) {}
+
+/* 趣像 23 (r46): 省电模式与无障碍（《界面与键位-高观点改造方案-r43》P3）
+   ─────────────────────────────────────────────────────────────
+   省电模式（设置 → 省电模式：自动 / 开 / 关）
+     开：舞台按 1 倍分辨率画；每秒约 30 帧；没人碰、也没有动作在演的时候降到约 12 帧（头照样会轻轻晃，只是更省）。
+     自动：电池低于 25% 且没在充电，或系统"省流量"打开时自动开；r43 的弱机降分辨率照常叠加。
+   无障碍
+     · 舞台是一张会动的画：给它一个随阵容更新的说明（"舞台：7×5，35 位角色：人类 8、猫 5……"）；
+     · 屏幕阅读器能听到所有提示（toast 同步进一个隐藏的 aria-live 区域）；
+     · 键盘可以走到舞台（Tab 顺序里有它），方向键在脸之间移动一个焦点圈，Enter 打开这张脸的卡片，空格照旧"看镜头"；
+     · 生态缸、天灾、礼花等新动画都走"减少动态效果"。 */
+
+/* ========== 省电 ========== */
+var POWER = { on: false, why: '', skip: 0, battery: null };
+function powerWanted() {
+  var m = CFG.power || 'auto';
+  if (m === 'on') return 'setting'; if (m === 'off') return '';
+  if (POWER.battery && !POWER.battery.charging && POWER.battery.level < .25) return 'battery';
+  try { if (navigator.connection && navigator.connection.saveData) return 'saveData'; } catch (e) {}
+  return '';
+}
+function powerApply() {
+  var why = powerWanted(), on = !!why;
+  if (on === POWER.on && why === POWER.why) return;
+  POWER.on = on; POWER.why = why;
+  document.documentElement.classList.toggle('qx-power', on);
+  try { layout(); } catch (e) {}
+}
+/* 分辨率：省电时 1 倍 */
+var powerBaseLayout = layout;
+layout = function () {
+  var saved = typeof QX_DPR_SCALE === 'number' ? QX_DPR_SCALE : 1;
+  if (POWER.on) QX_DPR_SCALE = .01;                      // build.cjs 的 DPR 公式里会夹到 1
+  try { return powerBaseLayout.apply(this, arguments); } finally { if (POWER.on) QX_DPR_SCALE = saved; }
+};
+function powerIdle() {
+  if (pointer.inside && performance.now() - pointer.last < 6000) return false;
+  if (SUPER || cardOpen || (typeof PHOTO !== 'undefined' && PHOTO.active) || (typeof EVO !== 'undefined' && EVO.on)) return false;
+  if (typeof FUN !== 'undefined' && (FUN.ff || FUN.dance || FUN.bubbles.length || FUN.parts.length)) return false;
+  if (particles.length) return false;
+  for (var i = 0; i < heads.length; i++) { var a = heads[i].acts; if (a && a.length) return false; if (heads[i].spinning) return false; }
+  return true;
+}
+var powerBaseThrottle = autoThrottle;
+autoThrottle = function () {
+  if (powerBaseThrottle.apply(this, arguments)) return true;
+  if (!POWER.on) return false;
+  POWER.skip = (POWER.skip + 1) % 60;
+  if (powerIdle()) return POWER.skip % 5 !== 0;          // 约 12 帧
+  return POWER.skip % 2 !== 0;                          // 约 30 帧
+};
+(function powerInit() {
+  try { if (navigator.getBattery) navigator.getBattery().then(function (b) { POWER.battery = b; powerApply(); b.addEventListener('levelchange', powerApply); b.addEventListener('chargingchange', powerApply); }); } catch (e) {}
+  var grp = null;
+  PANEL.forEach(function (G) { if ((G.items || []).some(function (it) { return it.id === 'reduce'; })) grp = G; });
+  if (grp) {
+    var at = grp.items.findIndex(function (it) { return it.id === 'reduce'; });
+    grp.items.splice(at + 1, 0, { id: 'power', label: '省电模式', type: 'seg', opts: [['auto', '自动'], ['on', '开'], ['off', '关']] });
+  }
+  UI_PAIRS.push(['省电模式', 'Power saving'], ['自动', 'Auto'], ['开', 'On'], ['关', 'Off']);
+  var baseSet = setCfg;
+  setCfg = function (id) { var r = baseSet.apply(this, arguments); if (id === 'power') { powerApply(); toast(POWER.on ? qxLocal('省电模式开：1 倍分辨率、约 30 帧，闲着时更省。', 'Power saving on: 1× resolution, ~30 fps, less when idle.') : qxLocal('省电模式关。', 'Power saving off.'), 2200); } return r; };
+  powerApply();
+})();
+
+/* ========== 无障碍 ========== */
+(function a11y() {
+  var live = document.createElement('div'); live.id = 'qxLive'; live.setAttribute('aria-live', 'polite'); live.setAttribute('role', 'status');
+  live.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;left:-9999px';
+  document.body.appendChild(live);
+  var baseToast = toast;
+  toast = function (msg) { var r = baseToast.apply(this, arguments); try { live.textContent = ''; setTimeout(function () { live.textContent = String(msg || ''); }, 30); } catch (e) {} return r; };
+  cv.setAttribute('tabindex', '0'); cv.setAttribute('role', 'img');
+  var describe = function () {
+    var n = {}, order = [];
+    heads.forEach(function (h) { if (h.hidden) return; var k = (typeof QX_PACKS !== 'undefined' ? QX_PACKS.short(h.g.sp) : h.g.sp); if (!n[k]) { n[k] = 0; order.push(k); } n[k]++; });
+    order.sort(function (a, b) { return n[b] - n[a]; });
+    var en = typeof UI_LANG !== 'undefined' && UI_LANG === 'en', total = order.reduce(function (s, k) { return s + n[k]; }, 0);
+    var list = order.slice(0, 6).map(function (k) { return k + ' ' + n[k]; }).join(en ? ', ' : '、') + (order.length > 6 ? (en ? '…' : '……') : '');
+    cv.setAttribute('aria-label', en ? 'Stage: ' + cols + '×' + rows + ', ' + total + ' characters: ' + list + '. Arrow keys move between faces, Enter opens a card.'
+      : '舞台：' + cols + '×' + rows + '，' + total + ' 位角色：' + list + '。方向键在脸之间移动，Enter 打开卡片。');
+  };
+  var t = 0; var later = function () { clearTimeout(t); t = setTimeout(describe, 400); };
+  var baseLayout2 = layout; layout = function () { var r = baseLayout2.apply(this, arguments); later(); return r; };
+  var baseSet2 = Head.prototype.setDNA; Head.prototype.setDNA = function () { var r = baseSet2.apply(this, arguments); later(); return r; };
+  later();
+  /* 键盘焦点圈 */
+  var F = { i: -1 };
+  window.__a11yFocus = F;
+  cv.addEventListener('focus', function () { if (F.i < 0) F.i = 0; });
+  cv.addEventListener('blur', function () { F.i = -1; });
+  window.addEventListener('keydown', function (e) {
+    if (document.activeElement !== cv || F.i < 0 || cardOpen || e.ctrlKey || e.metaKey || e.altKey) return;
+    var c = F.i % cols, r = Math.floor(F.i / cols), moved = true;
+    if (e.key === 'ArrowLeft') c = (c + cols - 1) % cols; else if (e.key === 'ArrowRight') c = (c + 1) % cols;
+    else if (e.key === 'ArrowUp') r = (r + rows - 1) % rows; else if (e.key === 'ArrowDown') r = (r + 1) % rows;
+    else if (e.key === 'Enter') { var h = heads[F.i]; if (h && !h.hidden) { e.preventDefault(); e.stopImmediatePropagation(); openCard(h); } return; }
+    else moved = false;
+    if (!moved) return;
+    e.preventDefault();
+    F.i = r * cols + c; var hh = heads[F.i];
+    if (hh) { pointer.x = hh.x; pointer.y = hh.y - hh.s * .2; pointer.inside = true; pointer.last = performance.now(); hovered = hh;
+      try { live.textContent = hh.hidden ? qxLocal('空格子', 'empty cell') : hh.id().name + ' · ' + hh.id().species; } catch (e2) {} }
+  }, true);
+  var baseGrid = drawGrid;
+  drawGrid = function (dt, now) {
+    var r = baseGrid.apply(this, arguments);
+    if (F.i < 0 || document.activeElement !== cv) return r;
+    var h = heads[F.i]; if (!h) return r;
+    try { ctx = gctx; ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.strokeStyle = '#c2412d'; ctx.lineWidth = 2.5; ctx.setLineDash([6, 4]);
+      ctx.beginPath(); ctx.arc(h.x, h.y, h.s * 1.25, 0, TAU); ctx.stroke(); ctx.restore(); } catch (e) { try { ctx.restore(); } catch (e2) {} }
+    return r;
+  };
+  var st = document.createElement('style');
+  st.textContent = '#c:focus{outline:none}#c:focus-visible{outline:2px solid #c2412d;outline-offset:-3px}' +
+    '@media(prefers-reduced-motion:reduce){#toolDeck{transition:none}}';
+  document.head.appendChild(st);
+})();
+try { window.__power = { get state() { return { on: POWER.on, why: POWER.why, dpr: DPR }; }, apply: powerApply }; } catch (e) {}
+
+/* 趣像 23 (r46): 生态缸第三期
+   ─────────────────────────────────────────────────────────────
+     时间倒带    每一代都存一份缸码（最近 80 代）；点种群曲线上任一处，缸回到那一代，从那里分叉重来
+     食物链      狐狸抓小鸡和兔子、猫头鹰和猫抓老鼠、老虎抓小猪——捕食者挨着猎物时，猎物可能被抓走（每代最多两起），
+                 捕食者吃饱了多生；物种志记一笔（"狐狸抓走了一只白·兔子。"）
+     共生        人和狗（看家护院）、人和猫（捉老鼠）、小猪和小鸡（农家院）、机器人和外星访客（技术交流）挨着时，两边都多生、少病
+     进化延时    每一代存一张小缩略图（最近 150 代），一键导出成 8 帧/秒的小视频：舞台 + 代数 + 气候 + 种群曲线逐帧长出来；
+                 浏览器不支持录像时，改存一张"进化连环画"（最多 24 格）
+     海报送展墙  进化史海报可以直接投到校园作品墙（与卡片同一条平台通道）；展墙上的"作品码"就是缸码，打开即是这一缸
+     缸码导入    代码框里粘贴缸码（qxt1_…）也能直接打开；从缸码来的生物，卡片上写"来自分享的缸码 · 第 N 代" */
+
+/* ========== 一、时间倒带 ========== */
+EVO.snaps = [];
+function evoSnap() {
+  if (!EVO.on || !heads.some(evoLive)) return;
+  var last = EVO.snaps[EVO.snaps.length - 1];
+  if (last && last.gen === EVO.gen) { last.code = evoExportCode(); return; }
+  EVO.snaps.push({ gen: EVO.gen, code: evoExportCode() });
+  if (EVO.snaps.length > 80) EVO.snaps.shift();
+}
+function evoRewind(gen) {
+  var s = null; EVO.snaps.forEach(function (q) { if (q.gen <= gen && (!s || q.gen > s.gen)) s = q; });
+  if (!s) { toast(evoL('那一代没有存档。', 'No snapshot for that generation.'), 1600); return false; }
+  var journal = EVO.journal.filter(function (j) { return j.gen <= s.gen; }), hist = EVO.hist.filter(function (h) { return h.gen <= s.gen; }), lineage = EVO.lineage, snaps = EVO.snaps.filter(function (q) { return q.gen <= s.gen; });
+  var from = EVO.gen, climate2 = EVO.climate2, ch = EVO.challenge;
+  EVO.rewinding = true;
+  var ok = false; try { ok = evoImportCode(s.code); } finally { EVO.rewinding = false; }
+  if (!ok) return false;
+  EVO.journal = journal; EVO.hist = hist; EVO.lineage = lineage; EVO.snaps = snaps;
+  Object.keys(lineage).forEach(function (k) { lineage[k].gone = false; });
+  if (ch && !ch.done) EVO.challenge = ch;
+  EVO.timelapse = (EVO.timelapse || []).filter(function (f) { return f.gen <= s.gen; });
+  evoLog('⟲ 时间倒回第 ' + s.gen + ' 代（从第 ' + from + ' 代）。从这里分叉重来。', '⟲ Rewound to generation ' + s.gen + ' (from ' + from + '). A new branch starts here.', 'mile');
+  evoRenderStats();
+  return true;
+}
+
+/* ========== 二、食物链与共生 ========== */
+var EVO_PREY = { fox: ['chick', 'rabbit'], owl: ['mouse'], cat: ['mouse'], tiger: ['pig'] };
+var EVO_BUDDY = [['human', 'dog', '看家护院', 'guarding the house'], ['human', 'cat', '捉老鼠', 'mousing'], ['pig', 'chick', '农家院', 'farmyard friends'], ['robot', 'alien', '技术交流', 'swapping tech']];
+EVO.chainSeen = {};
+function evoFoodChain() {
+  var alive = heads.filter(evoLive), eaten = 0;
+  alive.forEach(function (h) { if (h.evo) { h.evo.buddy = 0; h.evo.full = 0; } });
+  /* 共生 */
+  alive.forEach(function (h) {
+    if (h.g.natural) return;
+    evoNear(h).forEach(function (o) {
+      if (!evoLive(o) || o.g.natural) return;
+      EVO_BUDDY.forEach(function (B) {
+        if ((h.g.sp === B[0] && o.g.sp === B[1]) || (h.g.sp === B[1] && o.g.sp === B[0])) {
+          h.evo.buddy = 1; o.evo.buddy = 1;
+          var key = 'b:' + B[0] + B[1];
+          if (!EVO.chainSeen[key]) { EVO.chainSeen[key] = 1; evoLog('共生：' + CARDZH_SP[B[0]] + '和' + CARDZH_SP[B[1]] + '挨在一起就过得更好（' + B[2] + '）。', 'Symbiosis: ' + SPNAME[B[0]] + ' and ' + SPNAME[B[1]] + ' do better side by side (' + B[3] + ').', 'top'); }
+        }
+      });
+    });
+  });
+  /* 捕食 */
+  alive.sort(function () { return Math.random() - .5; }).forEach(function (h) {
+    if (eaten >= 2 || !evoLive(h) || h.g.natural) return;
+    var prey = EVO_PREY[h.g.sp]; if (!prey || Math.random() > .22) return;
+    var victims = evoNear(h).filter(function (o) { return evoLive(o) && !o.g.natural && prey.indexOf(o.g.sp) >= 0; });
+    if (!victims.length) return;
+    var v = evoRand(victims), vv = evoVariantOf(v), hv = evoVariantOf(h);
+    act(h, 'lean', { dir: dirTo(h, v) });
+    evoKill(v, 'eaten');
+    h.evo.full = 1; h.evo.buddy = 1; eaten++;          /* 吃饱了：本代多生（记在 buddy 上，基线的"吃"那一步会先把 fed 清零） */
+    if (SOUND && allow('evoChomp', 300, 1)) try { SFX.ptoo(panOf(v)); } catch (e) {}
+    var key = 'p:' + h.g.sp + v.g.sp;
+    if (!EVO.chainSeen[key] || Math.random() < .25) { EVO.chainSeen[key] = 1; evoLog(hv.zh + '抓走了一只' + vv.zh + '。', 'A ' + hv.en + ' caught a ' + vv.en + '.', 'gone'); }
+  });
+}
+var evoMoreBaseGen = evoGeneration;
+evoGeneration = function () {
+  if (EVO.on && heads.some(evoLive)) { try { evoFoodChain(); } catch (e) {} }
+  return evoMoreBaseGen.apply(this, arguments);
+};
+
+/* ========== 三、进化延时（每代一张缩略图） ========== */
+EVO.timelapse = [];
+function evoGrabFrame() {
+  if (!EVO.on || !cv.width) return;
+  var last = EVO.timelapse[EVO.timelapse.length - 1]; if (last && last.gen === EVO.gen) return;
+  var w = 360, h = Math.round(w * cv.height / cv.width), c = document.createElement('canvas'); c.width = w; c.height = h;
+  try { c.getContext('2d').drawImage(cv, 0, 0, w, h); } catch (e) { return; }
+  var item = { gen: EVO.gen, climate: EVO.climate, climate2: EVO.climate2, n: heads.filter(evoLive).length, url: null };
+  try { item.url = c.toDataURL('image/jpeg', .72); } catch (e) { return; }
+  c.width = c.height = 1;
+  EVO.timelapse.push(item);
+  if (EVO.timelapse.length > 150) EVO.timelapse.shift();
+}
+var evoMoreBaseCensus = evoCensus;
+evoCensus = function () {
+  var r = evoMoreBaseCensus.apply(this, arguments);
+  if (EVO.on) { evoSnap(); setTimeout(evoGrabFrame, 60); }
+  return r;
+};
+function evoLoadImg(url) { return new Promise(function (res) { var im = new Image(); im.onload = function () { res(im); }; im.onerror = function () { res(null); }; im.src = url; }); }
+async function evoTimelapse() {
+  var F = EVO.timelapse.slice();
+  if (F.length < 3) { toast(evoL('再多演几代，才有东西可以做延时。', 'Let it run a few more generations first.'), 2000); return; }
+  if (!beginExport(['进化延时', 'evolution timelapse'])) return;
+  try {
+    var ims = []; for (var i = 0; i < F.length; i++) ims.push(await evoLoadImg(F[i].url));
+    var fw = 720, fh = Math.round(fw * (ims[0] ? ims[0].height / ims[0].width : .6)), chartH = 90, head = 54, c = document.createElement('canvas');
+    c.width = fw; c.height = head + fh + chartH + 16;
+    var x = c.getContext('2d'), sans = 'system-ui,"PingFang SC","Noto Sans SC",sans-serif';
+    var maxN = Math.max(1, heads.length);
+    var paint = function (k) {
+      var f = F[k];
+      x.fillStyle = '#f5efe3'; x.fillRect(0, 0, c.width, c.height);
+      x.fillStyle = '#3a342c'; x.font = '700 26px ' + sans; x.textAlign = 'left';
+      x.fillText(evoL('生态缸 · 第 ' + f.gen + ' 代', 'Tank · generation ' + f.gen), 16, 36);
+      x.font = '400 18px ' + sans; x.textAlign = 'right'; x.fillStyle = '#6a5f52';
+      x.fillText(evoL(EVO_CLIMATES[f.climate].zh + (f.climate2 ? ' | ' + EVO_CLIMATES[f.climate2].zh : '') + ' · ' + f.n + ' 只', EVO_CLIMATES[f.climate].en + (f.climate2 ? ' | ' + EVO_CLIMATES[f.climate2].en : '') + ' · ' + f.n), fw - 16, 36);
+      if (ims[k]) x.drawImage(ims[k], 0, head, fw, fh);
+      var y0 = head + fh + 8; x.fillStyle = '#ece3d2'; x.fillRect(16, y0, fw - 32, chartH);
+      x.fillStyle = 'hsla(150,40%,45%,.8)'; x.beginPath(); x.moveTo(16, y0 + chartH);
+      for (var j = 0; j <= k; j++) x.lineTo(16 + (fw - 32) * j / Math.max(1, F.length - 1), y0 + chartH - F[j].n / maxN * (chartH - 4));
+      x.lineTo(16 + (fw - 32) * k / Math.max(1, F.length - 1), y0 + chartH); x.closePath(); x.fill();
+    };
+    var types = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'], mime = '';
+    if (window.MediaRecorder && c.captureStream) for (var t = 0; t < types.length; t++) if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(types[t])) { mime = types[t]; break; }
+    if (!mime) {                                        // 不支持录像：进化连环画
+      var step = Math.max(1, Math.ceil(F.length / 24)), picks = []; for (var p = 0; p < F.length; p += step) picks.push(p);
+      var cols2 = 4, rows2 = Math.ceil(picks.length / cols2), tw = 300, th = Math.round(tw * fh / fw), sheet = document.createElement('canvas');
+      sheet.width = cols2 * tw; sheet.height = rows2 * (th + 28); var sx = sheet.getContext('2d'); sx.fillStyle = '#f5efe3'; sx.fillRect(0, 0, sheet.width, sheet.height);
+      picks.forEach(function (k2, i2) { var X = (i2 % cols2) * tw, Y = Math.floor(i2 / cols2) * (th + 28); if (ims[k2]) sx.drawImage(ims[k2], X + 4, Y + 24, tw - 8, th - 4); sx.fillStyle = '#3a342c'; sx.font = '500 15px ' + sans; sx.fillText(evoL('第 ' + F[k2].gen + ' 代', 'Gen ' + F[k2].gen), X + 6, Y + 18); });
+      sheet.toBlob(function (b) { endExport(); evoDownload(b, 'quxiang-tank-comic.png'); toast(evoL('浏览器不支持录像，存成了一张进化连环画。', 'No video recording here — saved a comic strip instead.'), 2600); }, 'image/png');
+      return;
+    }
+    var stream = c.captureStream(24), chunks = [], rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 3e6 });
+    rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+    rec.onstop = function () { endExport(); var b = new Blob(chunks, { type: rec.mimeType || mime }); evoDownload(b, 'quxiang-tank-timelapse.' + (/mp4/.test(mime) ? 'mp4' : 'webm')); toast(evoL('进化延时已保存（' + F.length + ' 代）。', 'Timelapse saved (' + F.length + ' generations).'), 2400); };
+    paint(0); rec.start();
+    var k = 0, tick = function () { paint(k); k++; if (k < F.length) setTimeout(tick, 125); else setTimeout(function () { paint(F.length - 1); setTimeout(function () { rec.stop(); }, 700); }, 125); };
+    setTimeout(tick, 125);
+  } catch (e) { exportFailed(); }
+}
+function evoDownload(blob, name) {
+  if (!blob) return;
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 3000);
+}
+
+/* ========== 四、海报送展墙 ========== */
+async function evoPosterWall() {
+  var c = evoPosterCanvas(); if (!c) return;
+  var me = null;
+  try { var r = await fetch('/api/v2/auth/me', { credentials: 'same-origin' }); me = await r.json(); } catch (e) {}
+  if (!me || !me.username) { toast(evoL('登录后可以挂到展墙；海报用「海报」照样存到本地。', 'Sign in to hang it on the wall — or save the poster locally.'), 4200); return; }
+  if (!beginExport(['展墙投稿', 'wall submission'])) return;
+  try {
+    var small = document.createElement('canvas'); small.width = 720; small.height = Math.round(720 * c.height / c.width); small.getContext('2d').drawImage(c, 0, 0, small.width, small.height);
+    var blob = await new Promise(function (res) { small.toBlob(res, 'image/jpeg', .86); });
+    var uri = await new Promise(function (res) { var fr = new FileReader(); fr.onload = function () { res(fr.result); }; fr.readAsDataURL(blob); });
+    var code = 'tank=' + evoExportCode(), title = evoL('生态缸 · 第 ' + EVO.gen + ' 代', 'Evolution tank · gen ' + EVO.gen);
+    var url = '/api/v1/projects/' + encodeURIComponent(me.username) + '/quxiang-tank-' + Date.now().toString(36);
+    var res = await fetch(url, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project_type: 'quxiang', thumbnail: uri, extra_files: { 'main.txt': code }, notes: title, project_metadata: { kind: 'quxiang-tank', title: title, series: EVO_CLIMATES[EVO.climate].zh } }) });
+    var js = {}; try { js = await res.json(); } catch (e) {}
+    if (!res.ok || !js.ok) { exportFailed(); return; }
+    try { await fetch(url + '/metadata?ispublic=true&ispublished=true', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
+    endExport();
+    toast(evoL('进化史挂上了作品墙；展墙上点开就是这一缸。', 'Hung on the wall — opening it there rebuilds this tank.'), 4200);
+  } catch (e) { exportFailed(); }
+}
+
+/* ========== 五、缸码也能从代码框导入；导入的生物带"来历" ========== */
+if (typeof importCode === 'function') {
+  var evoMoreBaseImport = importCode;
+  importCode = function (str) {
+    var s = String(str || '');
+    if (s.indexOf('qxt1_') >= 0) { var ok = evoImportCode(decodeURIComponent(s.slice(s.indexOf('qxt1_')))); if (!ok) toast(evoL('看不懂这段缸码。', 'That tank code doesn’t parse.'), 2000); return ok; }
+    return evoMoreBaseImport.apply(this, arguments);
+  };
+}
+var evoMoreBaseImportCode = evoImportCode;
+evoImportCode = function (str) {
+  if (!EVO.rewinding) EVO.importUntil = performance.now() + 4000;   /* 摆放是分批延时的，所以用一个时间窗而不是同步标记 */
+  return evoMoreBaseImportCode.apply(this, arguments);
+};
+var evoMoreBasePlace = evoPlace;
+evoPlace = function (h, dna) {
+  if (performance.now() < (EVO.importUntil || 0) && typeof cardBio === 'function') {
+    var C = EVO_CLIMATES[EVO.climate];
+    cardBio(dna, { zh: '来自分享的缸码 · 第 ' + EVO.gen + ' 代 · ' + C.zh, en: 'From a shared tank code · gen ' + EVO.gen + ' · ' + C.en.toLowerCase() });
+  }
+  return evoMoreBasePlace.apply(this, arguments);
+};
+
+/* ========== 六、面板：曲线可点、新按钮 ========== */
+UI_PAIRS.push(['延时', 'Timelapse'], ['送展墙', 'To the wall'], ['点曲线回到那一代', 'Click the chart to rewind to that generation']);
+var evoMoreBaseBuild = evoBuildPanel;
+evoBuildPanel = function () {
+  var fresh = !EVO.panel, p = evoMoreBaseBuild.apply(this, arguments);
+  if (!fresh) return p;
+  p.chart.style.cursor = 'pointer'; p.chart.title = uiText('点曲线回到那一代');
+  p.chart.addEventListener('click', function (e) {
+    var H2 = EVO.hist; if (H2.length < 2) return;
+    var r = p.chart.getBoundingClientRect(), k = Math.round((e.clientX - r.left) / r.width * (H2.length - 1));
+    var g = H2[clamp(k, 0, H2.length - 1)].gen;
+    if (g >= EVO.gen) return;
+    evoRewind(g);
+  });
+  var r4 = p.el.querySelector('.evoRow.r4');
+  if (r4) [['延时', evoTimelapse], ['送展墙', evoPosterWall]].forEach(function (it) {
+    var b = document.createElement('button'); b.type = 'button'; b.textContent = uiText(it[0]); b.addEventListener('click', function () { it[1](); }); r4.appendChild(b);
+  });
+  return p;
+};
+var evoMoreBaseEnter = evoEnter;
+evoEnter = function () { EVO.snaps = []; EVO.timelapse = []; EVO.chainSeen = {}; return evoMoreBaseEnter.apply(this, arguments); };
+try { Object.assign(window.__evo, { rewind: evoRewind, snaps: function () { return EVO.snaps.map(function (s) { return s.gen; }); }, timelapse: evoTimelapse, frames: function () { return EVO.timelapse.length; }, wall: evoPosterWall }); } catch (e) {}
 
 
 renderRecent();

@@ -468,8 +468,12 @@ function evoChartOn(x, w, h) {
   });
 }
 function evoPoster() {
+  var c = evoPosterCanvas(); if (!c) return;
+  evoPosterSave(c);
+}
+function evoPosterCanvas() {
   var alive = heads.filter(evoLive);
-  if (!alive.length && !EVO.hist.length) { toast(evoL('缸是空的。', 'The tank is empty.'), 1600); return; }
+  if (!alive.length && !EVO.hist.length) { toast(evoL('缸是空的。', 'The tank is empty.'), 1600); return null; }
   var PW = 1080, PH = 1560, c = document.createElement('canvas'); c.width = PW; c.height = PH;
   var x = c.getContext('2d'), serif = '"Noto Serif SC","Songti SC","STSong",serif', sans = 'system-ui,"PingFang SC","Noto Sans SC",sans-serif';
   x.fillStyle = '#f5efe3'; x.fillRect(0, 0, PW, PH);
@@ -516,13 +520,16 @@ function evoPoster() {
     lines.slice(0, 2).forEach(function (l, i) { x.fillText(l, 170, y + i * 34); }); y += (Math.min(2, lines.length) - 1) * 34;
   });
   x.textAlign = 'center'; x.font = '400 22px ' + sans; x.fillStyle = '#8a7c6a'; x.fillText(evoL('趣像 · 生态缸 —— 投放、繁衍、突变、看谁活下来', 'Qu Xiang · evolution tank — drop, breed, mutate, see who survives'), PW / 2, PH - 70);
+  EVO.lastPoster = c;
+  return c;
+}
+function evoPosterSave(c) {
   c.toBlob(function (b) {
     if (!b) { toast(evoL('海报生成失败。', 'Poster failed.'), 2000); return; }
     var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'quxiang-tank-gen' + EVO.gen + '.png'; document.body.appendChild(a); a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
     toast(evoL('进化史海报已保存。', 'Evolution poster saved.'), 2200);
   }, 'image/png');
-  EVO.lastPoster = c;
 }
 
 /* ========== 九、面板：新增几排 ========== */

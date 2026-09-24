@@ -6,7 +6,7 @@
       audit() 查同一上下文的重复与缺中/英文名；window.__keys 调试出口。键位表、手机动作面板仍由 KBROWS 生成。
    3) 工具栏浮层化：顶栏与表演条收进一个浮在舞台上方的 #toolDeck——展开/收起不再改变舞台尺寸（以前 706→611px，
       每张脸 73→64px 并整体下移）；有鼠标的设备上空闲 6 秒自动变淡，指针移到上方或按 Tab 复原。
-   4) 手机底部五键：演（动作面板）· 拍（大合照）· 角色（角色包）· 进化（生态缸）· 设置；原底栏在手机上收起，
+   4) 手机底部五键：演（动作面板）· 拍（大合照）· 角色（角色包）· 进化（生态缸）· 工具（r46 起，原为设置）；原底栏在手机上收起，
       舞台下沿让出底栏高度。 */
 
 /* ========== 1) 上下文层 ========== */
@@ -94,7 +94,8 @@ UI_PAIRS.push(['显示/收起工具栏', 'Show/hide the toolbar'], ['重拍', 'R
     ['snap', '◉', '拍', 'Photo', function () { fire('snapshot'); }],
     ['packs', '▦', '角色', 'Cast', function () { if (typeof packsOpen === 'function') packsOpen(); }],
     ['evo', '❦', '进化', 'Evolve', function () { fire('evolve'); }],
-    ['set', '⚙', '设置', 'Settings', function () { if (typeof togglePanel === 'function') togglePanel(); }]
+    /* r46：原底栏收起后，工具栏把手也跟着看不见了——第五键改为"工具"（场景、语言、画材与设置、保存都在工具栏里） */
+    ['tools', '☰', '工具', 'Tools', function () { if (typeof setImmersive === 'function') setImmersive(!immersiveState()); }]
   ];
   items.forEach(function (it) {
     var b = document.createElement('button'); b.type = 'button'; b.dataset.k = it[0];
@@ -102,7 +103,7 @@ UI_PAIRS.push(['显示/收起工具栏', 'Show/hide the toolbar'], ['重拍', 'R
     b.addEventListener('click', function () { try { it[4](); } catch (e) {} });
     dock.appendChild(b);
   });
-  UI_PAIRS.push(['快捷操作', 'Quick actions'], ['演', 'Act'], ['拍', 'Photo'], ['角色', 'Cast'], ['进化', 'Evolve'], ['设置', 'Settings']);
+  UI_PAIRS.push(['快捷操作', 'Quick actions'], ['演', 'Act'], ['拍', 'Photo'], ['角色', 'Cast'], ['进化', 'Evolve'], ['设置', 'Settings'], ['工具', 'Tools']);
   var st = document.createElement('style');
   st.textContent =
     '#qxDock{display:none}' +
@@ -114,10 +115,19 @@ UI_PAIRS.push(['显示/收起工具栏', 'Show/hide the toolbar'], ['重拍', 'R
     '  #sheet{padding-bottom:calc(58px + env(safe-area-inset-bottom,0px))}#caption{display:none!important}' +
     '  body.evo-on #qxDock{display:none}body.evo-on #sheet{padding-bottom:0}' +
     '}' +
+    /* r46：横屏手机——底栏太占高度，改成右侧一条竖栏 */
+    '@media(max-height:500px) and (orientation:landscape) and (pointer:coarse){' +
+    '  #qxDock{display:flex;flex-direction:column;position:fixed;top:0;bottom:0;right:0;z-index:48;width:calc(62px + env(safe-area-inset-right,0px));padding:6px env(safe-area-inset-right,0px) 6px 4px;' +
+    '    background:rgba(246,242,233,.96);border-left:1px solid #d9cfbc;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}' +
+    '  #qxDock button{flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;border:0;background:none;color:#3f4c43;font:11px/1.2 system-ui,"PingFang SC",sans-serif;min-height:44px;border-radius:10px}' +
+    '  #qxDock i{font-style:normal;font-size:17px;line-height:1}' +
+    '  #sheet{padding-right:calc(62px + env(safe-area-inset-right,0px))}#caption{display:none!important}' +
+    '  body.evo-on #qxDock{display:none}body.evo-on #sheet{padding-right:0}' +
+    '}' +
     '@media(max-width:640px) and (prefers-color-scheme:dark){#qxDock{background:rgba(40,36,31,.96);border-color:#5a5044}#qxDock button{color:#efe7d8}}';
   document.head.appendChild(st);
   document.body.appendChild(dock);
-  var mq = null; try { mq = window.matchMedia('(max-width:640px)'); } catch (e) {}
+  var mq = null; try { mq = window.matchMedia('(max-width:640px), (max-height:500px) and (orientation:landscape) and (pointer:coarse)'); } catch (e) {}
   if (mq) { var relayout = function () { requestAnimationFrame(function () { layout(); }); }; if (mq.addEventListener) mq.addEventListener('change', relayout); if (mq.matches) relayout(); }
   /* 进出生态缸时舞台下沿变了，重排一次 */
   var evoWas = document.body.classList.contains('evo-on');
