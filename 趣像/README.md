@@ -22,6 +22,10 @@ node build.cjs --verify     # 只做补丁契约检查：命中/失配清单（�
 | `build.cjs` | 构建 + 补丁清单 + 资产版本注入 |
 | `*.js` | 本仓库的扩展（按 build.cjs 里的顺序拼接；同一 IIFE 作用域） |
 | `favicon.svg` | 产物图标 |
+| `new-faces.js` / `myth-faces.js` | r43 人像：共用零件 + 逐个构图（新增角色的约定见 `docs/quxiang-r43/角色重绘-r43.md`） |
+| `portrait-sprite.js` | r43 半身像位图缓存（舞台每帧只重画眼睛） |
+| `ux-r43.js` | r43 词条索引、键位表分区、手机样式、弱机降分辨率 |
+| `fun-r43.js` | r43 趣味合奏、合影队形 / 倒数 / 拍照瞬间 / 相框 |
 
 ## 两条约定
 
@@ -32,6 +36,7 @@ node build.cjs --verify     # 只做补丁契约检查：命中/失配清单（�
 ## 相关文档
 
 - 每批的验收与设计：`docs/fun/quxiang-rNN/`（含 `开发与验证/` 源码快照、版本记录、验证说明）
+- 本仓库：`docs/quxiang-r42/`（r42 归档文档）、`docs/quxiang-r43/`（r43 设计、性能、界面方案、样张）
 - 高观点审查与增强方案：`docs/fun/趣像-高观点审查与增强方案-20260923.md`
 - 头像管线：`bin/process-student-avatars.py`、情绪件：`bin/generate-avatar-emotions.py`
 - 回归套件：`bin/quxiang-regress.mjs`

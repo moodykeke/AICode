@@ -102,7 +102,7 @@ function labBuild() {
   ov.addEventListener('click', function (e) { if (e.target === ov) labClose(); });
 
   sheet.querySelector('.ql-hint').textContent = qxLocal(
-    '← → 换相框 · 1–4 直选 · P 存展板 · W 送展墙 · 点背景关闭', '← → change frame · 1–4 pick · P poster · W wall · click outside to cancel');
+    '← → 换相框 · 1–7 直选 · P 存展板 · W 送展墙 · 点背景关闭', '← → change frame · 1–7 pick · P poster · W wall · click outside to cancel');
 
   PHOTO_LAB.el = ov;
   PHOTO_LAB.built = true;
@@ -288,7 +288,7 @@ window.addEventListener('keydown', function (e) {
   else if (k === 'r' || k === 'R' || k === ';' || k === ':' || k === '；' || k === '：') labReshoot();
   else if (k === 'ArrowLeft') labCycle(-1);
   else if (k === 'ArrowRight') labCycle(1);
-  else if (k >= '1' && k <= '4') labSetFrame(LAB_FRAMES[+k - 1]);
+  else if (k >= '1' && k <= '9' && LAB_FRAMES[+k - 1]) labSetFrame(LAB_FRAMES[+k - 1]);   /* r43：相框增至 7 个 */
   else handled = false;
   if (handled || k.length === 1 || k === 'Tab') e.preventDefault();
   // 弹窗开着时舞台一律不接键盘：单个字符键与方向键都吞掉，避免误触发表演动作
