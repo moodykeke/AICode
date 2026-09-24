@@ -173,7 +173,7 @@ const toolbarPolish=`
   @keyframes qxPulse{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
 `;
 var toolbarStyleEnd=html.lastIndexOf('</style>');html=html.slice(0,toolbarStyleEnd)+toolbarPolish+html.slice(toolbarStyleEnd);
-const extension = ['studio.js','atlas.js','folklore.js','portrait-evolution.js','new-faces.js','myth-faces.js','portrait-sprite.js','ensemble.js','curation.js','locale-lookbook.js','touch-feel.js','neck-mode.js','scale-play.js','dock-moves.js','wall-submit.js','gaze-life.js','audio-bank.js','panel-design.js','move-sound.js','memory-tame.js','gaze-hop-fix.js','group-photo.js','photo-lab.js','class-faces.js','pointer-turn.js','mobile-fit.js','mem-tag.js','bigscreen.js','i18n-fill.js'].map(f=>fs.readFileSync(path.join(__dirname,f),'utf8')).join('\n');
+const extension = ['studio.js','atlas.js','folklore.js','portrait-evolution.js','new-faces.js','myth-faces.js','portrait-sprite.js','ensemble.js','curation.js','locale-lookbook.js','touch-feel.js','neck-mode.js','scale-play.js','dock-moves.js','wall-submit.js','gaze-life.js','audio-bank.js','panel-design.js','move-sound.js','memory-tame.js','gaze-hop-fix.js','group-photo.js','photo-lab.js','class-faces.js','pointer-turn.js','mobile-fit.js','mem-tag.js','bigscreen.js','i18n-fill.js','ux-r43.js'].map(f=>fs.readFileSync(path.join(__dirname,f),'utf8')).join('\n');
 // 资产版本：取自拾趣馆卡片 v —— 同一个旋钮同时管卡片、基线与情绪件 URL 的 ?v=
 let ASSET_V = 1;
 try {
@@ -183,7 +183,7 @@ try {
 } catch (e) { console.warn('资产版本读取失败，用 1'); }
 replace('renderRecent();\nboot();', 'var QX_ASSET_V = ' + ASSET_V + ';\n' + extension + '\n\nrenderRecent();\nboot();');
 replace("drag.head.pitch = clamp(drag.head.pitch + dy*0.006, -0.45, 0.5);", "drag.head.pitch = clamp(drag.head.pitch - dy*0.006, -0.45, 0.5);   /* r29 纵向方向翻回 */");
-replace("  DPR = Math.min(window.devicePixelRatio||1, W<700?1.75:2);", "  DPR = Math.min(window.devicePixelRatio||1, W<700?1.75:2, Math.max(1, Math.sqrt(2600000/(W*H))));   /* r26 内存：舞台总像素 ≤260 万 */");
+replace("  DPR = Math.min(window.devicePixelRatio||1, W<700?1.75:2);", "  DPR = Math.min(window.devicePixelRatio||1, W<700?1.75:2, Math.max(1, Math.sqrt(2600000/(W*H))));   /* r26 内存：舞台总像素 ≤260 万 */\n  if(typeof QX_DPR_SCALE==='number' && QX_DPR_SCALE<1) DPR = Math.max(Math.min(1, DPR), DPR*QX_DPR_SCALE);   /* r43 弱机：持续掉帧时逐级降分辨率，不低于 1 */");
 replace("if(geneCache.size>4000) geneCache.clear();", "if(geneCache.size>1200) geneCache.clear();");
 
 // 输出直接落到站内（内网 nginx 直出仓库工作树）：源码在 趣像/，产物在 static/fun/quxiang/

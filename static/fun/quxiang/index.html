@@ -4344,6 +4344,7 @@ function layout(){
   var rect = stage.getBoundingClientRect();
   W = Math.max(280, rect.width|0); H = Math.max(240, rect.height|0);
   DPR = Math.min(window.devicePixelRatio||1, W<700?1.75:2, Math.max(1, Math.sqrt(2600000/(W*H))));   /* r26 内存：舞台总像素 ≤260 万 */
+  if(typeof QX_DPR_SCALE==='number' && QX_DPR_SCALE<1) DPR = Math.max(Math.min(1, DPR), DPR*QX_DPR_SCALE);   /* r43 弱机：持续掉帧时逐级降分辨率，不低于 1 */
   cv.width = (W*DPR)|0; cv.height = (H*DPR)|0;
   var target = (W<520 ? 122 : (W<900 ? 150 : 168))*CFG.scale;
   cols = CFG.cols ? CFG.cols : clamp(Math.round(W/target), 3, 11);
@@ -5700,13 +5701,17 @@ if(SHARE_KEYS.indexOf('mono')<0) SHARE_KEYS.push('mono');
 // migration silently skip. A separate marker preserves deliberate future grid edits.
 // 2026-09-23：默认由 7×6(42) 改为 7×5(35)；用新标记 grid7x5 迁移一次，
 // 明确选过网格的人（gridChoice）保持不动。
-var STAGE_DEFAULT = { cols: 7, rows: 5 };
+// r43：竖屏手机（窄边 <520px）默认 4×6（24 位）——7×5 在 390 宽上每张脸只有 ~45px，点不准也更费电。
+// 只影响"从没选过网格"的访客；明确选过的（gridChoice）不动。
+var STAGE_PHONE = (function(){ try { return Math.min(window.innerWidth, window.innerHeight) < 520 && window.innerHeight >= window.innerWidth; } catch (e) { return false; } })();
+var STAGE_DEFAULT = STAGE_PHONE ? { cols: 4, rows: 6 } : { cols: 7, rows: 5 };
 function ensureStageDefault(){
   try{
     var migrated=localStorage.getItem('quxiang.grid7x5'),choice=localStorage.getItem('quxiang.gridChoice');
     var pool=Array.isArray(CFG.speciesPool)?CFG.speciesPool:[];
     var oldAuto=(!choice && !pool.length && (Number(CFG.cols)!==STAGE_DEFAULT.cols || Number(CFG.rows)!==STAGE_DEFAULT.rows));
     if(!migrated && oldAuto){CFG.cols=STAGE_DEFAULT.cols;CFG.rows=STAGE_DEFAULT.rows;CFG.composition='grid';saveCfg();localStorage.setItem('quxiang.grid7x5','1');}
+    if(STAGE_PHONE && !choice && !localStorage.getItem('quxiang.gridPhone') && Number(CFG.cols)===7 && Number(CFG.rows)===5){CFG.cols=STAGE_DEFAULT.cols;CFG.rows=STAGE_DEFAULT.rows;CFG.composition='grid';saveCfg();localStorage.setItem('quxiang.gridPhone','1');}
   }catch(e){}
   return Number(CFG.cols)===STAGE_DEFAULT.cols && Number(CFG.rows)===STAGE_DEFAULT.rows && CFG.composition==='grid';
 }
@@ -5992,7 +5997,7 @@ document.getElementById('stageSummary').addEventListener('click',function(){
   CFG.cols=STAGE_DEFAULT.cols;CFG.rows=STAGE_DEFAULT.rows;CFG.composition='grid';studioScene='';
   try{localStorage.setItem('quxiang.gridChoice','default');localStorage.setItem('quxiang.grid7x5','1');}catch(e){}
   applyTheme();layout();saveCfg();syncPanel();document.querySelectorAll('[data-scene]').forEach(function(b){b.setAttribute('aria-pressed','false');});
-  toast('默认舞台已恢复：7 列 × 5 行。',1800);
+  toast(qxLocal('默认舞台已恢复：'+STAGE_DEFAULT.cols+' 列 × '+STAGE_DEFAULT.rows+' 行。','Default stage restored: '+STAGE_DEFAULT.cols+' columns × '+STAGE_DEFAULT.rows+' rows.'),1800);
 });
 // The artwork is the default state. The dock remains as a small, discoverable
 // handle; U or the handle reveals the full operation bars without changing the
@@ -6002,7 +6007,7 @@ function setImmersive(on,persist){
   on=!!on;if(!immersiveSheet)return on;
   immersiveSheet.classList.toggle('immersive',on);
   var immersiveEnglish=typeof UI_LANG!=='undefined'&&UI_LANG==='en';
-  if(immersiveToggle){immersiveToggle.setAttribute('aria-expanded',on?'false':'true');immersiveToggle.setAttribute('title',immersiveEnglish?(on?'Show controls (U)':'Hide controls (U)'):(on?'显示操作栏（U）':'收起操作栏（U）'));var txt=immersiveToggle.querySelector?immersiveToggle.querySelector('.immersiveText'):null;if(txt)txt.textContent=immersiveEnglish?(on?'Show tools':'Hide tools'):(on?'显示工具':'收起工具');}
+  if(immersiveToggle){immersiveToggle.setAttribute('aria-expanded',on?'false':'true');immersiveToggle.setAttribute('title',immersiveEnglish?(on?'Show controls (Tab)':'Hide controls (Tab)'):(on?'显示操作栏（Tab）':'收起操作栏（Tab）'));var txt=immersiveToggle.querySelector?immersiveToggle.querySelector('.immersiveText'):null;if(txt)txt.textContent=immersiveEnglish?(on?'Show tools':'Hide tools'):(on?'显示工具':'收起工具');}
   if(immersiveStudio)immersiveStudio.setAttribute('aria-hidden',on?'true':'false');if(immersivePlay)immersivePlay.setAttribute('aria-hidden',on?'true':'false');
   if(persist!==false){try{localStorage.setItem('quxiang.immersive',on?'on':'off');}catch(e){}}
   if(typeof layout==='function')requestAnimationFrame(function(){layout();});return on;
@@ -6011,7 +6016,22 @@ function immersiveState(){return !!(immersiveSheet&&immersiveSheet.classList.con
 var immersiveSaved='on';try{immersiveSaved=localStorage.getItem('quxiang.immersive')||'on';}catch(e){}
 setImmersive(immersiveSaved!=='off',false);
 if(immersiveToggle)immersiveToggle.addEventListener('click',function(){setImmersive(!immersiveState());});
-document.addEventListener('keydown',function(e){if(e.key&&e.key.toLowerCase()==='u'&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test((e.target&&e.target.tagName)||'')){e.preventDefault();setImmersive(!immersiveState());}});
+/* r43 键位：工具栏不再占 U（U 是基线的"下雨"，两者同时触发）。
+   改为 Tab：焦点还在舞台上时按 Tab，工具栏展开并把焦点交给第一个按钮——想用键盘走到控件，正是该显示控件的时候；
+   从工具栏里按 Esc，收起（仅限这次是 Tab 叫出来的）并把焦点还给舞台。焦点已在控件里时 Tab 照常走。 */
+var immersiveByTab=false;
+function immersiveOnStage(){var a=document.activeElement;return !a||a===document.body||a===document.documentElement||a.id==='c'||a.id==='stage';}
+document.addEventListener('keydown',function(e){
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  var bar=document.getElementById('studioBar'),play=document.getElementById('playBar');
+  if(e.key==='Tab'&&!e.shiftKey&&immersiveOnStage()&&immersiveState()&&!(typeof helpOpen!=='undefined'&&helpOpen)&&!(typeof cardOpen!=='undefined'&&cardOpen)){
+    e.preventDefault();setImmersive(false);immersiveByTab=true;
+    requestAnimationFrame(function(){var f=bar&&bar.querySelector('button:not([disabled]),select');if(f)f.focus();});return;
+  }
+  if(e.key==='Escape'&&immersiveByTab&&document.activeElement&&((bar&&bar.contains(document.activeElement))||(play&&play.contains(document.activeElement)))){
+    immersiveByTab=false;document.activeElement.blur();setImmersive(true);
+  }
+});
 /* v13-r17 拾趣馆集成：本作作为校园站展品挂在 /static/fun/ 下时，给一条回馆的路。
    独立打开压缩包（file:// 或本地预览）时不注入，保持作品自洽。 */
 (function(){
@@ -7822,7 +7842,7 @@ folkMotif = function(h,o,info){
    它们每一笔都是"纸色遮挡 + 两层水彩 + 双遍墨线"，35 位同台时每帧要重画上千笔，弱机吃力。
    做法：每个角色在当前尺寸、画风、纸色下只画一次到离屏小画布；舞台每帧贴图，
    再按实时视线与眨眼重画登记过的眼睛——所以目光跟随、眨眼、轻触回应都还在。
-   以下情况照常逐笔现画：伸脖、融化/冰冻、半透明、招牌动作与风中摆动、伞怪（独眼即脸）、
+   以下情况照常逐笔现画：伸脖、融化/冰冻、半透明、招牌动作与风中摆动、大合影全程、伞怪（独眼即脸）与烛龙（闭眼焰暗）、
    卡片/导出/打印分辨率（每单位 >110 设备像素）。缓存按 LRU 限 3MB，页面隐藏即清空。
    调试出口 window.__sprite（stats / on / clear）。 */
 var SPRITE = { on: true, cache: new Map(), bytes: 0, max: 3 * 1048576, bakes: 0, hits: 0, live: 0, sig: '' };
@@ -7871,9 +7891,11 @@ function spriteBake(h, k, base){
 var spriteBaseNatural = Head.prototype.drawNatural;
 Head.prototype.drawNatural = function(o){
   if (!SPRITE.on || ctx !== gctx || !spriteKind(this.g.sp) || o.neck || (o.melt||0) > .01 || (o.ice||0) > .02 || GALPHA < .999 ||
-      Math.abs(o.perform||0) > .04 || Math.abs(o.wind||0) > .08) { SPRITE.live++; return spriteBaseNatural.call(this, o); }
+      Math.abs(o.perform||0) > .04 || Math.abs(o.wind||0) > .08 || (typeof PHOTO !== 'undefined' && PHOTO && PHOTO.active)) { SPRITE.live++; return spriteBaseNatural.call(this, o); }
   var M = ctx.getTransform(), kNow = Math.hypot(M.a, M.b), kNom = kNow / Math.max(.05, (this.pop||1)*(o.hs||1));
-  var bucket = Math.max(16, Math.round(kNom*4)/4);   // 同一舞台所有格子同尺寸：按实际尺寸烘焙，1:1 贴图不发虚
+  // 网格里所有格子同尺寸：按实际尺寸烘焙，1:1 贴图不发虚；簇状/单人构图大小不一，按 6% 一档合用，避免一人一张
+  var bucket = CFG.composition === 'grid' ? Math.round(kNom*4)/4 : Math.round(Math.exp(Math.round(Math.log(kNom)/.0583)*.0583)*4)/4;
+  bucket = Math.max(16, bucket);
   if (bucket > 110) { SPRITE.live++; return spriteBaseNatural.call(this, o); }
   var sig = spriteSig(); if (sig !== SPRITE.sig) { spriteClear(); SPRITE.sig = sig; }
   var key = this.g.sp + '|' + this.g.fur + '|' + (this.g.donor||'') + '|' + (this.g.motifVariant||0) + '|' + STYLE + '|' + (COLOR ? 1 : 0) + '|' + bucket;
@@ -8560,8 +8582,12 @@ drawGrid = function (dt, now) {
   setTimeout(function () {
     if (typeof toast !== 'function') return;
     var en = (typeof UI_LANG !== 'undefined' && UI_LANG === 'en');
-    toast(en ? 'It is tactile now: tap to greet · sweep to make a wave · tap the paper for ripples · hold to slow down · stare and someone notices.'
-             : '现在可以摸：轻触打招呼 · 快划成浪 · 慢划起涟漪 · 按住慢下来 · 盯着谁，谁会注意到你', 6800);
+    // r43：触屏没有"悬停凝视"，换成触屏真正做得到的：长按开卡
+    var touch = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+    toast(touch ? (en ? 'Touch them: tap to greet · sweep for a wave · drag slowly for ripples · press and hold for a card.'
+                      : '可以摸：轻触打招呼 · 快划成浪 · 慢划起涟漪 · 长按看卡片')
+                : (en ? 'It is tactile now: tap to greet · sweep to make a wave · tap the paper for ripples · hold to slow down · stare and someone notices.'
+                      : '现在可以摸：轻触打招呼 · 快划成浪 · 慢划起涟漪 · 按住慢下来 · 盯着谁，谁会注意到你'), touch ? 5200 : 6800);
   }, 2600);
 })();
 
@@ -8860,7 +8886,7 @@ if (typeof UI_PAIRS !== 'undefined') {
 
 /* 趣像 09 (r22): 界面把手归位 + 缺位动画接上键盘
    一、沉浸把手（"显示工具"）原本固定在画布顶部居中，挡在头像区。改为**默认放进下方栏**，
-       并在设置里给三个选择：底部栏（默认）／右上角／隐藏（按 U 随时叫回来）。
+       并在设置里给三个选择：底部栏（默认）／右上角／隐藏（按 Tab 随时叫回来）。
    二、应用里有一批"反应型"动画（laugh / bobble / stargaze / cheer / bow / canon …）
        只作为邻居反应的内部素材，没有键盘出口——这里把它们编成五个整场动作并接上键位，
        同时写进快捷键一览（帮助面板）与页脚图例。 */
@@ -8991,7 +9017,7 @@ if (SHARE_KEYS.indexOf('dockMode') < 0) SHARE_KEYS.push('dockMode');
       { id: 'scaleMode', label: '音阶调式', type: 'seg',
         opts: [['auto', '每次随机'], ['gong', '宫'], ['shang', '商'], ['jiao', '角'], ['zhi', '徵'], ['yu', '羽']] },
       { id: 'dockMode', label: '沉浸把手', type: 'seg',
-        opts: [['bar', '底部栏'], ['corner', '右上角'], ['hidden', '隐藏（按 U）']] },
+        opts: [['bar', '底部栏'], ['corner', '右上角'], ['hidden', '隐藏（按 Tab）']] },
     ],
   };
   if (typeof PANEL !== 'undefined' && !PANEL.some(function(G){ return G.group === grp.group; })) {
@@ -9016,7 +9042,7 @@ if (typeof UI_PAIRS !== 'undefined') {
     ['演奏与界面', 'Playing & interface'],
     ['音阶调式', 'Musical mode'], ['每次随机', 'Random each time'],
     ['宫', 'Gong'], ['商', 'Shang'], ['角', 'Jiao'], ['徵', 'Zhi'], ['羽', 'Yu'],
-    ['沉浸把手', 'Immersive handle'], ['底部栏', 'In footer'], ['右上角', 'Top right'], ['隐藏（按 U）', 'Hidden (press U)'],
+    ['沉浸把手', 'Immersive handle'], ['底部栏', 'In footer'], ['右上角', 'Top right'], ['隐藏（按 Tab）', 'Hidden (press Tab)'],
     ['音阶调式决定点击角色时发出的音高分布；把手是"显示工具"那枚按钮的位置。',
      'The mode shapes the pitches you hear when tapping a head; the handle is where the "show tools" button sits.'],
     ['小动作', 'Small moves'],
@@ -12035,6 +12061,130 @@ if (typeof UI_PAIRS !== 'undefined') {
     ['合影', 'Group photo']
   );
 }
+
+/* 趣像 19 (r43): 界面与键位收口、手机端操作、弱机降分辨率
+   ─────────────────────────────────────────────────────────────
+   1) 词条索引补全：UI_INDEX 只在 locale-lookbook.js 载入时建一次，之后 14 个扩展 push 的 151 条
+      （班级人像、暗房、大屏、合奏小动作、i18n-fill 的 45 条……）从没进索引——中英切换对它们无效。
+      这里在全部扩展之后重建一次索引，并让以后的 push 自动入索引。
+   2) 键位表按"区"组织：数字＝终章与设置，字母＝动作，括号区＝合奏，; '＝拍照，< > |＝音乐；
+      < > | 在键位表里点了没反应（它们走 scale-play 自己的监听而非 KEYMAP），现在点键帽会回放该键。
+   3) 手机：键位表变成带名字的动作面板；底栏收成一行横滑（不再四个按钮竖排、把手压住键帽）；
+      顶栏左侧的语言切换不再被挤出屏幕。
+   4) 弱机：舞台连续 3 秒每帧绘制 >34ms 时，逐级降低舞台分辨率（每级 ×0.8，最低 1 倍），
+      只对高分屏有效；拍照提分辨率期间不动。 */
+
+/* ---------- 1) 词条索引补全 ---------- */
+(function uxLocale(){
+  if (typeof UI_PAIRS === 'undefined' || typeof UI_INDEX === 'undefined') return;
+  UI_PAIRS.push(
+    ['全场弹一遍', 'Strum the cast'], ['按音阶顺序，每张脸弹一个音。', 'A note on every face, in scale order.'],
+    ['换调式', 'Another mode'], ['重新抽一个音阶（调、调式、走向、行距）。', 'Re-roll the scale (key, mode, direction, spacing).'],
+    ['换一首', 'Next tune'], ['按当前调式奏下一首曲子。', 'Play the next tune in the current mode.'],
+    ['大合照', 'Group photo'], ['大家聚拢摆个造型，闪光一下，出一张合影。', 'Everyone gathers into one pose, a flash goes off, and the photo is yours to save.'],
+    ['看照片', 'View photo'], ['重新打开上一张合影：换相框、保存或分享。', 'Reopen the last group photo: change the frame, save, or share it.'],
+    ['少一行', 'Fewer rows'], ['舞台少一行。', 'One row less on the stage.'], ['多一行', 'More rows'], ['舞台多一行。', 'One row more on the stage.'],
+    ['数字：终章 1–7 · 设置', 'Numbers: finales 1–7 · settings'], ['字母：动作（Shift 全场版）', 'Letters: moves (Shift: everyone)'],
+    ['合奏', 'Ensemble'], ['拍照', 'Camera'], ['音乐', 'Music'],
+    ['Tab 显示/收起工具栏 · Esc 退出或取消 · Enter 打开指着的那张脸的卡片', 'Tab show/hide the toolbar · Esc leave or cancel · Enter open the card of the face under the pointer'],
+    ['显示操作栏（Tab）', 'Show controls (Tab)'], ['收起操作栏（Tab）', 'Hide controls (Tab)']
+  );
+  function index(p){ if (!p || !p[0] || !p[1]) return; UI_INDEX[p[0]] = p; UI_INDEX[p[1]] = p; UI_INDEX[String(p[1]).toLowerCase()] = p; }
+  UI_PAIRS.forEach(index);
+  var push = UI_PAIRS.push;
+  UI_PAIRS.push = function(){ for (var i = 0; i < arguments.length; i++) index(arguments[i]); return push.apply(UI_PAIRS, arguments); };
+  if (typeof refreshLocale === 'function') refreshLocale();
+})();
+
+/* ---------- 2) 键位表按区组织 ---------- */
+(function uxKeys(){
+  if (typeof KEYINFO === 'undefined' || typeof KBROWS === 'undefined') return;
+  if (!KEYINFO['|']) KEYINFO['|'] = ['Next tune', 'Play the next tune in the current mode.', 'action'];
+  // 前五排是基线键盘（数字、三排字母、空格）；其后按区重排扩展键
+  var core = KBROWS.slice(0, 5), zones = [['[', ']', '\\', '{', '}'], [';', '\''], ['<', '>', '|']];
+  KBROWS.length = 0;
+  core.concat(zones.map(function(r){ return r.filter(function(k){ return KEYINFO[k]; }); }).filter(function(r){ return r.length; }))
+      .forEach(function(r){ KBROWS.push(r); });
+  var ZONE = { '`':['数字：终章 1–7 · 设置', 1], '1':['数字：终章 1–7 · 设置', 1], 'q':['字母：动作（Shift 全场版）', 1], '[':['合奏'], ';':['拍照'], '<':['音乐'] };
+  var baseBuild = buildKb;
+  buildKb = function(){
+    baseBuild();
+    var kb = document.getElementById('kb'); if (!kb) return;
+    Array.prototype.forEach.call(kb.querySelectorAll('.kbrow'), function(row){
+      var b = row.querySelector('.cap b'); if (!b) return;
+      var z = ZONE[b.textContent.toLowerCase()]; if (!z) return;
+      var lab = document.createElement('span'); lab.className = 'kbzone' + (z[1] ? ' core' : '');
+      lab.textContent = uiText(z[0]); row.insertBefore(lab, row.firstChild);
+    });
+    // 这几个键由扩展自己的监听处理（不在 KEYMAP 里）：点键帽时把按键回放给它们
+    Array.prototype.forEach.call(kb.querySelectorAll('.cap'), function(cap){
+      var k = cap.firstChild && cap.firstChild.textContent;
+      if (!k || k.length !== 1 || KEYMAP[k] || KEYMAP[k.toLowerCase()]) return;
+      cap.addEventListener('click', function(){ setTimeout(function(){ document.dispatchEvent(new KeyboardEvent('keydown', {key:k, bubbles:false})); }, 140); });
+    });
+    if (!document.getElementById('kbKeysNote')) {
+      var note = document.createElement('p'); note.id = 'kbKeysNote'; note.className = 'legend';
+      note.textContent = uiText('Tab 显示/收起工具栏 · Esc 退出或取消 · Enter 打开指着的那张脸的卡片');
+      var info = document.getElementById('kbInfo'); if (info) info.parentNode.insertBefore(note, info);
+    }
+  };
+  var kbEl = document.getElementById('kb'); if (kbEl && kbEl.firstChild) { kbEl.innerHTML = ''; }
+})();
+
+/* ---------- 3) 样式：键位区标签、手机底栏/顶栏/动作面板 ---------- */
+(function uxStyle(){
+  var st = document.createElement('style');
+  st.textContent = [
+    '#kb .kbzone{align-self:center;font:600 11px/1.3 sans-serif;letter-spacing:.1em;color:#7a6f5c;margin-right:6px;white-space:nowrap}',
+    '#kb .kbzone.core{display:none}',
+    '#kbKeysNote{margin-top:6px}',
+    '@media (max-width:720px){#studioBar .studioActions{justify-content:flex-start!important}#studioBar .studioActions>*{flex-shrink:0}#studioBar .languageControl select{max-width:none;min-width:88px}}',
+    '@media (max-width:640px){',
+    /* 键位表 → 带名字的动作面板：四列、每格显示动作名，分区有小标题 */
+    '  #help .helpSheet{max-height:calc(100vh - 28px);overflow-y:auto;-webkit-overflow-scrolling:touch}',
+    '  #help .kbrow{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px!important;padding-left:0!important;margin:0 0 6px}',
+    '  #help .kbzone,#help .kbzone.core{display:block;grid-column:1/-1;margin:8px 0 0}',
+    '  #help .cap{width:auto!important;min-width:0!important;height:auto!important;min-height:52px;padding:5px 7px!important;text-align:left}',
+    '  #help .cap span{display:block!important;font-size:11.5px;line-height:1.25;white-space:normal}',
+    '  #help .cap b{font-size:12px!important;opacity:.72}',
+    '  #help .cap.space{grid-column:span 2;width:auto!important}',
+    /* 底栏：一行横滑，把手放最前，不再竖排、不再重叠 */
+    '  #caption{display:flex!important;flex-wrap:nowrap!important;align-items:center;overflow-x:auto;overflow-y:hidden;gap:6px!important;',
+    '    padding:6px 10px calc(6px + env(safe-area-inset-bottom,0px))!important;scrollbar-width:none;',
+    '    -webkit-mask-image:linear-gradient(90deg,#000 86%,transparent);mask-image:linear-gradient(90deg,#000 86%,transparent)}',
+    '  #caption::-webkit-scrollbar{display:none}',
+    '  #caption .name,#caption .note{display:none!important}',
+    '  #caption .tools,#caption #recent{display:contents!important}',
+    '  #caption #immersiveDock{order:-1;margin:0!important;flex:0 0 auto;width:auto!important}',
+    '  #caption .key,#caption button{flex:0 0 auto;min-height:44px;white-space:nowrap}',
+    '  #caption .key.tool{order:1}#caption #recent .key{order:2}#caption #autoChip{order:1}',
+    '}'
+  ].join('\n');
+  document.head.appendChild(st);
+})();
+
+/* ---------- 4) 弱机降分辨率 ---------- */
+var QX_DPR_SCALE = 1;
+(function uxLowPower(){
+  var slow = 0;
+  function tick(){
+    try {
+      var shooting = typeof PHOTO !== 'undefined' && PHOTO && (PHOTO.hi || PHOTO.active);
+      if (!document.hidden && typeof perfDraw === 'number' && !shooting && !cardOpen) {
+        if (perfDraw > 34) slow++; else slow = Math.max(0, slow - 1);
+        if (slow >= 3 && DPR > 1.05 && QX_DPR_SCALE > .56) {
+          slow = 0; QX_DPR_SCALE = Math.max(.56, QX_DPR_SCALE * .8);
+          DPR = Math.max(1, DPR * .8); cv.width = (W*DPR) | 0; cv.height = (H*DPR) | 0;
+          if (typeof rebuildPaper === 'function') rebuildPaper();
+          if (typeof spriteClear === 'function') spriteClear();
+        }
+      }
+    } catch (e) {}
+    setTimeout(tick, 1000);
+  }
+  setTimeout(tick, 4000);
+  try { window.__lowpower = { get scale(){ return QX_DPR_SCALE; }, get dpr(){ return DPR; } }; } catch (e) {}
+})();
 
 
 renderRecent();

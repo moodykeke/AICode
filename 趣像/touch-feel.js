@@ -285,7 +285,11 @@ drawGrid = function (dt, now) {
   setTimeout(function () {
     if (typeof toast !== 'function') return;
     var en = (typeof UI_LANG !== 'undefined' && UI_LANG === 'en');
-    toast(en ? 'It is tactile now: tap to greet · sweep to make a wave · tap the paper for ripples · hold to slow down · stare and someone notices.'
-             : '现在可以摸：轻触打招呼 · 快划成浪 · 慢划起涟漪 · 按住慢下来 · 盯着谁，谁会注意到你', 6800);
+    // r43：触屏没有"悬停凝视"，换成触屏真正做得到的：长按开卡
+    var touch = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+    toast(touch ? (en ? 'Touch them: tap to greet · sweep for a wave · drag slowly for ripples · press and hold for a card.'
+                      : '可以摸：轻触打招呼 · 快划成浪 · 慢划起涟漪 · 长按看卡片')
+                : (en ? 'It is tactile now: tap to greet · sweep to make a wave · tap the paper for ripples · hold to slow down · stare and someone notices.'
+                      : '现在可以摸：轻触打招呼 · 快划成浪 · 慢划起涟漪 · 按住慢下来 · 盯着谁，谁会注意到你'), touch ? 5200 : 6800);
   }, 2600);
 })();

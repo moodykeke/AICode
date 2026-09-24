@@ -16,13 +16,17 @@ if(SHARE_KEYS.indexOf('mono')<0) SHARE_KEYS.push('mono');
 // migration silently skip. A separate marker preserves deliberate future grid edits.
 // 2026-09-23：默认由 7×6(42) 改为 7×5(35)；用新标记 grid7x5 迁移一次，
 // 明确选过网格的人（gridChoice）保持不动。
-var STAGE_DEFAULT = { cols: 7, rows: 5 };
+// r43：竖屏手机（窄边 <520px）默认 4×6（24 位）——7×5 在 390 宽上每张脸只有 ~45px，点不准也更费电。
+// 只影响"从没选过网格"的访客；明确选过的（gridChoice）不动。
+var STAGE_PHONE = (function(){ try { return Math.min(window.innerWidth, window.innerHeight) < 520 && window.innerHeight >= window.innerWidth; } catch (e) { return false; } })();
+var STAGE_DEFAULT = STAGE_PHONE ? { cols: 4, rows: 6 } : { cols: 7, rows: 5 };
 function ensureStageDefault(){
   try{
     var migrated=localStorage.getItem('quxiang.grid7x5'),choice=localStorage.getItem('quxiang.gridChoice');
     var pool=Array.isArray(CFG.speciesPool)?CFG.speciesPool:[];
     var oldAuto=(!choice && !pool.length && (Number(CFG.cols)!==STAGE_DEFAULT.cols || Number(CFG.rows)!==STAGE_DEFAULT.rows));
     if(!migrated && oldAuto){CFG.cols=STAGE_DEFAULT.cols;CFG.rows=STAGE_DEFAULT.rows;CFG.composition='grid';saveCfg();localStorage.setItem('quxiang.grid7x5','1');}
+    if(STAGE_PHONE && !choice && !localStorage.getItem('quxiang.gridPhone') && Number(CFG.cols)===7 && Number(CFG.rows)===5){CFG.cols=STAGE_DEFAULT.cols;CFG.rows=STAGE_DEFAULT.rows;CFG.composition='grid';saveCfg();localStorage.setItem('quxiang.gridPhone','1');}
   }catch(e){}
   return Number(CFG.cols)===STAGE_DEFAULT.cols && Number(CFG.rows)===STAGE_DEFAULT.rows && CFG.composition==='grid';
 }
@@ -308,7 +312,7 @@ document.getElementById('stageSummary').addEventListener('click',function(){
   CFG.cols=STAGE_DEFAULT.cols;CFG.rows=STAGE_DEFAULT.rows;CFG.composition='grid';studioScene='';
   try{localStorage.setItem('quxiang.gridChoice','default');localStorage.setItem('quxiang.grid7x5','1');}catch(e){}
   applyTheme();layout();saveCfg();syncPanel();document.querySelectorAll('[data-scene]').forEach(function(b){b.setAttribute('aria-pressed','false');});
-  toast('默认舞台已恢复：7 列 × 5 行。',1800);
+  toast(qxLocal('默认舞台已恢复：'+STAGE_DEFAULT.cols+' 列 × '+STAGE_DEFAULT.rows+' 行。','Default stage restored: '+STAGE_DEFAULT.cols+' columns × '+STAGE_DEFAULT.rows+' rows.'),1800);
 });
 // The artwork is the default state. The dock remains as a small, discoverable
 // handle; U or the handle reveals the full operation bars without changing the
@@ -318,7 +322,7 @@ function setImmersive(on,persist){
   on=!!on;if(!immersiveSheet)return on;
   immersiveSheet.classList.toggle('immersive',on);
   var immersiveEnglish=typeof UI_LANG!=='undefined'&&UI_LANG==='en';
-  if(immersiveToggle){immersiveToggle.setAttribute('aria-expanded',on?'false':'true');immersiveToggle.setAttribute('title',immersiveEnglish?(on?'Show controls (U)':'Hide controls (U)'):(on?'显示操作栏（U）':'收起操作栏（U）'));var txt=immersiveToggle.querySelector?immersiveToggle.querySelector('.immersiveText'):null;if(txt)txt.textContent=immersiveEnglish?(on?'Show tools':'Hide tools'):(on?'显示工具':'收起工具');}
+  if(immersiveToggle){immersiveToggle.setAttribute('aria-expanded',on?'false':'true');immersiveToggle.setAttribute('title',immersiveEnglish?(on?'Show controls (Tab)':'Hide controls (Tab)'):(on?'显示操作栏（Tab）':'收起操作栏（Tab）'));var txt=immersiveToggle.querySelector?immersiveToggle.querySelector('.immersiveText'):null;if(txt)txt.textContent=immersiveEnglish?(on?'Show tools':'Hide tools'):(on?'显示工具':'收起工具');}
   if(immersiveStudio)immersiveStudio.setAttribute('aria-hidden',on?'true':'false');if(immersivePlay)immersivePlay.setAttribute('aria-hidden',on?'true':'false');
   if(persist!==false){try{localStorage.setItem('quxiang.immersive',on?'on':'off');}catch(e){}}
   if(typeof layout==='function')requestAnimationFrame(function(){layout();});return on;
@@ -327,7 +331,22 @@ function immersiveState(){return !!(immersiveSheet&&immersiveSheet.classList.con
 var immersiveSaved='on';try{immersiveSaved=localStorage.getItem('quxiang.immersive')||'on';}catch(e){}
 setImmersive(immersiveSaved!=='off',false);
 if(immersiveToggle)immersiveToggle.addEventListener('click',function(){setImmersive(!immersiveState());});
-document.addEventListener('keydown',function(e){if(e.key&&e.key.toLowerCase()==='u'&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test((e.target&&e.target.tagName)||'')){e.preventDefault();setImmersive(!immersiveState());}});
+/* r43 键位：工具栏不再占 U（U 是基线的"下雨"，两者同时触发）。
+   改为 Tab：焦点还在舞台上时按 Tab，工具栏展开并把焦点交给第一个按钮——想用键盘走到控件，正是该显示控件的时候；
+   从工具栏里按 Esc，收起（仅限这次是 Tab 叫出来的）并把焦点还给舞台。焦点已在控件里时 Tab 照常走。 */
+var immersiveByTab=false;
+function immersiveOnStage(){var a=document.activeElement;return !a||a===document.body||a===document.documentElement||a.id==='c'||a.id==='stage';}
+document.addEventListener('keydown',function(e){
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  var bar=document.getElementById('studioBar'),play=document.getElementById('playBar');
+  if(e.key==='Tab'&&!e.shiftKey&&immersiveOnStage()&&immersiveState()&&!(typeof helpOpen!=='undefined'&&helpOpen)&&!(typeof cardOpen!=='undefined'&&cardOpen)){
+    e.preventDefault();setImmersive(false);immersiveByTab=true;
+    requestAnimationFrame(function(){var f=bar&&bar.querySelector('button:not([disabled]),select');if(f)f.focus();});return;
+  }
+  if(e.key==='Escape'&&immersiveByTab&&document.activeElement&&((bar&&bar.contains(document.activeElement))||(play&&play.contains(document.activeElement)))){
+    immersiveByTab=false;document.activeElement.blur();setImmersive(true);
+  }
+});
 /* v13-r17 拾趣馆集成：本作作为校园站展品挂在 /static/fun/ 下时，给一条回馆的路。
    独立打开压缩包（file:// 或本地预览）时不注入，保持作品自洽。 */
 (function(){

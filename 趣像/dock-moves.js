@@ -1,6 +1,6 @@
 /* 趣像 09 (r22): 界面把手归位 + 缺位动画接上键盘
    一、沉浸把手（"显示工具"）原本固定在画布顶部居中，挡在头像区。改为**默认放进下方栏**，
-       并在设置里给三个选择：底部栏（默认）／右上角／隐藏（按 U 随时叫回来）。
+       并在设置里给三个选择：底部栏（默认）／右上角／隐藏（按 Tab 随时叫回来）。
    二、应用里有一批"反应型"动画（laugh / bobble / stargaze / cheer / bow / canon …）
        只作为邻居反应的内部素材，没有键盘出口——这里把它们编成五个整场动作并接上键位，
        同时写进快捷键一览（帮助面板）与页脚图例。 */
@@ -131,7 +131,7 @@ if (SHARE_KEYS.indexOf('dockMode') < 0) SHARE_KEYS.push('dockMode');
       { id: 'scaleMode', label: '音阶调式', type: 'seg',
         opts: [['auto', '每次随机'], ['gong', '宫'], ['shang', '商'], ['jiao', '角'], ['zhi', '徵'], ['yu', '羽']] },
       { id: 'dockMode', label: '沉浸把手', type: 'seg',
-        opts: [['bar', '底部栏'], ['corner', '右上角'], ['hidden', '隐藏（按 U）']] },
+        opts: [['bar', '底部栏'], ['corner', '右上角'], ['hidden', '隐藏（按 Tab）']] },
     ],
   };
   if (typeof PANEL !== 'undefined' && !PANEL.some(function(G){ return G.group === grp.group; })) {
@@ -156,7 +156,7 @@ if (typeof UI_PAIRS !== 'undefined') {
     ['演奏与界面', 'Playing & interface'],
     ['音阶调式', 'Musical mode'], ['每次随机', 'Random each time'],
     ['宫', 'Gong'], ['商', 'Shang'], ['角', 'Jiao'], ['徵', 'Zhi'], ['羽', 'Yu'],
-    ['沉浸把手', 'Immersive handle'], ['底部栏', 'In footer'], ['右上角', 'Top right'], ['隐藏（按 U）', 'Hidden (press U)'],
+    ['沉浸把手', 'Immersive handle'], ['底部栏', 'In footer'], ['右上角', 'Top right'], ['隐藏（按 Tab）', 'Hidden (press Tab)'],
     ['音阶调式决定点击角色时发出的音高分布；把手是"显示工具"那枚按钮的位置。',
      'The mode shapes the pitches you hear when tapping a head; the handle is where the "show tools" button sits.'],
     ['小动作', 'Small moves'],

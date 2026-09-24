@@ -3,7 +3,7 @@
    它们每一笔都是"纸色遮挡 + 两层水彩 + 双遍墨线"，35 位同台时每帧要重画上千笔，弱机吃力。
    做法：每个角色在当前尺寸、画风、纸色下只画一次到离屏小画布；舞台每帧贴图，
    再按实时视线与眨眼重画登记过的眼睛——所以目光跟随、眨眼、轻触回应都还在。
-   以下情况照常逐笔现画：伸脖、融化/冰冻、半透明、招牌动作与风中摆动、伞怪（独眼即脸）、
+   以下情况照常逐笔现画：伸脖、融化/冰冻、半透明、招牌动作与风中摆动、大合影全程、伞怪（独眼即脸）与烛龙（闭眼焰暗）、
    卡片/导出/打印分辨率（每单位 >110 设备像素）。缓存按 LRU 限 3MB，页面隐藏即清空。
    调试出口 window.__sprite（stats / on / clear）。 */
 var SPRITE = { on: true, cache: new Map(), bytes: 0, max: 3 * 1048576, bakes: 0, hits: 0, live: 0, sig: '' };
@@ -52,9 +52,11 @@ function spriteBake(h, k, base){
 var spriteBaseNatural = Head.prototype.drawNatural;
 Head.prototype.drawNatural = function(o){
   if (!SPRITE.on || ctx !== gctx || !spriteKind(this.g.sp) || o.neck || (o.melt||0) > .01 || (o.ice||0) > .02 || GALPHA < .999 ||
-      Math.abs(o.perform||0) > .04 || Math.abs(o.wind||0) > .08) { SPRITE.live++; return spriteBaseNatural.call(this, o); }
+      Math.abs(o.perform||0) > .04 || Math.abs(o.wind||0) > .08 || (typeof PHOTO !== 'undefined' && PHOTO && PHOTO.active)) { SPRITE.live++; return spriteBaseNatural.call(this, o); }
   var M = ctx.getTransform(), kNow = Math.hypot(M.a, M.b), kNom = kNow / Math.max(.05, (this.pop||1)*(o.hs||1));
-  var bucket = Math.max(16, Math.round(kNom*4)/4);   // 同一舞台所有格子同尺寸：按实际尺寸烘焙，1:1 贴图不发虚
+  // 网格里所有格子同尺寸：按实际尺寸烘焙，1:1 贴图不发虚；簇状/单人构图大小不一，按 6% 一档合用，避免一人一张
+  var bucket = CFG.composition === 'grid' ? Math.round(kNom*4)/4 : Math.round(Math.exp(Math.round(Math.log(kNom)/.0583)*.0583)*4)/4;
+  bucket = Math.max(16, bucket);
   if (bucket > 110) { SPRITE.live++; return spriteBaseNatural.call(this, o); }
   var sig = spriteSig(); if (sig !== SPRITE.sig) { spriteClear(); SPRITE.sig = sig; }
   var key = this.g.sp + '|' + this.g.fur + '|' + (this.g.donor||'') + '|' + (this.g.motifVariant||0) + '|' + STYLE + '|' + (COLOR ? 1 : 0) + '|' + bucket;
