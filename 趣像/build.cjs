@@ -26,7 +26,7 @@ replace('<div id="sheet">', `<div id="sheet" class="immersive">
     <span class="studioTitle">奇趣物种剧场 <small>CURIOUS CREATURES / 13 · v13.0.0</small></span>
     <div class="studioScenes" role="group" aria-label="主题场景">
       <span class="toolLabel">先选一个方向</span>
-      <button type="button" data-scene="guofeng" data-primary-scene="true">国风葫芦</button>
+      <button type="button" data-scene="zodiac" data-primary-scene="true">十二生肖</button>
       <button type="button" data-scene="cartoons" data-primary-scene="true">动画来客</button>
       <button type="button" data-scene="hybrids" data-primary-scene="true">混生花园</button>
       <details class="sceneMore"><summary>更多主题</summary><div class="sceneMoreMenu">
@@ -173,7 +173,7 @@ const toolbarPolish=`
   @keyframes qxPulse{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
 `;
 var toolbarStyleEnd=html.lastIndexOf('</style>');html=html.slice(0,toolbarStyleEnd)+toolbarPolish+html.slice(toolbarStyleEnd);
-const extension = ['studio.js','atlas.js','folklore.js','portrait-evolution.js','new-faces.js','myth-faces.js','portrait-sprite.js','ensemble.js','curation.js','locale-lookbook.js','touch-feel.js','neck-mode.js','scale-play.js','dock-moves.js','wall-submit.js','gaze-life.js','audio-bank.js','panel-design.js','move-sound.js','memory-tame.js','gaze-hop-fix.js','group-photo.js','photo-lab.js','class-faces.js','pointer-turn.js','mobile-fit.js','mem-tag.js','bigscreen.js','i18n-fill.js','ux-r43.js','fun-r43.js','card-words-r44.js','packs-r45.js','gourd-r49.js','ui-r45.js','evolve-r44.js','evolve-plus-r45.js','gestures-r46.js','power-a11y-r46.js','evolve-more-r46.js','evolve-voice-r47.js','evolve-feel-r48.js','bust-split-r49.js','photo-r49.js'].map(f=>fs.readFileSync(path.join(__dirname,f),'utf8')).join('\n');
+const extension = ['studio.js','atlas.js','folklore.js','portrait-evolution.js','new-faces.js','myth-faces.js','portrait-sprite.js','ensemble.js','curation.js','locale-lookbook.js','touch-feel.js','neck-mode.js','scale-play.js','dock-moves.js','wall-submit.js','gaze-life.js','audio-bank.js','panel-design.js','move-sound.js','memory-tame.js','gaze-hop-fix.js','group-photo.js','photo-lab.js','class-faces.js','pointer-turn.js','mobile-fit.js','mem-tag.js','bigscreen.js','i18n-fill.js','ux-r43.js','fun-r43.js','card-words-r44.js','packs-r45.js','gourd-r49.js','ui-r45.js','evolve-r44.js','evolve-plus-r45.js','gestures-r46.js','power-a11y-r46.js','evolve-more-r46.js','evolve-voice-r47.js','evolve-feel-r48.js','bust-split-r49.js','photo-r49.js','zodiac-r50.js'].map(f=>fs.readFileSync(path.join(__dirname,f),'utf8')).join('\n');
 // 资产版本：取自拾趣馆卡片 v —— 同一个旋钮同时管卡片、基线与情绪件 URL 的 ?v=
 let ASSET_V = 1;
 try {

@@ -39,6 +39,7 @@ node build.cjs --verify     # 只做补丁契约检查：命中/失配清单（�
 | `gourd-r49.js` | r49 葫芦七子 Q 版大头重画，并入动画来客 |
 | `bust-split-r49.js` | r49 半身像头肩分离（肩膀不跟着跳，补脖子） |
 | `photo-r49.js` | r49 大合影：合影设置、入场动态、5 种新队形、烟花；修连拍变小 |
+| `zodiac-r50.js` | r50 十二生肖（经典头像新物种，七个基因座全开）与剪纸风画风 |
 
 ## 两条约定
 
@@ -49,7 +50,7 @@ node build.cjs --verify     # 只做补丁契约检查：命中/失配清单（�
 ## 相关文档
 
 - 每批的验收与设计：`docs/fun/quxiang-rNN/`（含 `开发与验证/` 源码快照、版本记录、验证说明）
-- 本仓库：`docs/quxiang-r42/`（r42 归档文档）、`docs/quxiang-r43/`（r43 设计、性能、界面方案、样张）、`docs/quxiang-r44/`（生态缸、角色包与分享互动设计）、`docs/quxiang-r45/`（生态缸第二期、界面 P1 与角色包）、`docs/quxiang-r46/`（界面 P2/P3、生态缸第三期）、`docs/quxiang-r47/`（台词与声景）、`docs/quxiang-r48/`（沉浸式舞台、生态缸手感）、`docs/quxiang-r49/`（大合影第三期、葫芦七子、头肩分离）
+- 本仓库：`docs/quxiang-r42/`（r42 归档文档）、`docs/quxiang-r43/`（r43 设计、性能、界面方案、样张）、`docs/quxiang-r44/`（生态缸、角色包与分享互动设计）、`docs/quxiang-r45/`（生态缸第二期、界面 P1 与角色包）、`docs/quxiang-r46/`（界面 P2/P3、生态缸第三期）、`docs/quxiang-r47/`（台词与声景）、`docs/quxiang-r48/`（沉浸式舞台、生态缸手感）、`docs/quxiang-r49/`（大合影第三期、葫芦七子、头肩分离）、`docs/quxiang-r50/`（十二生肖、剪纸风）
 - 高观点审查与增强方案：`docs/fun/趣像-高观点审查与增强方案-20260923.md`
 - 头像管线：`bin/process-student-avatars.py`、情绪件：`bin/generate-avatar-emotions.py`
 - 回归套件：`bin/quxiang-regress.mjs`
